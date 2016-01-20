@@ -4,7 +4,7 @@ Client for the Booker v4 API. See http://apidoc.booker.com for method-level docu
 
 ## Setup
 
-Configuration may be specified via the environment or when initializing a Booker::Client:
+Configuration may be specified via the environment or when initializing Booker::Client:
 
 Configuring via environment variables:
 ```
