@@ -25,7 +25,7 @@ There are two client classes. **Booker::CustomerClient** is used to interact wit
 The client handles authorization and requesting new access tokens as needed.
 
 ```
-# Initialize your client
+# Use BusinessClient to interact with the v4 BusinessService on behalf of a merchant
 
 business_client = Booker::BusinessClient.new(
   booker_account_name: self.booker_account_name,
@@ -33,11 +33,19 @@ business_client = Booker::BusinessClient.new(
   booker_password: self.booker_password
 )
 
-# Make requests
-
 locations = client.find_locations
-
 treatments = client.find_treatments(booker_location_id: locations.first.ID)
+
+# Use CustomerClient to interact with the v4 CustomerService as a consumer
+
+customer_client = Booker::CustomerClient.new
+
+available_times = customer_client.run_multi_spa_multi_sub_category_availability(
+              booker_location_ids: [locations.first.ID],
+              treatment_sub_category_ids: treatments.first.SubCategory.ID,
+              start_date_time: Time.zone.tomorrow.beginning_of_day,
+              end_date_time: Time.zone.tomorrow.end_of_day
+          )
 ```
 
 ## Available Methods
