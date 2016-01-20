@@ -33,19 +33,36 @@ business_client = Booker::BusinessClient.new(
   booker_password: self.booker_password
 )
 
-locations = client.find_locations
-treatments = client.find_treatments(booker_location_id: locations.first.ID)
+logged_in_user = business_client.get_logged_in_user
+location = business_client.get_location(logged_in_user.LocationID)
+
+location.ID
+# => 45678
+
+location.BusinessName
+# => 'My Booker Spa'
+
+treatments = client.find_treatments(booker_location_id: location.ID)
 
 # Use CustomerClient to interact with the v4 CustomerService as a consumer
 
 customer_client = Booker::CustomerClient.new
 
 available_times = customer_client.run_multi_spa_multi_sub_category_availability(
-              booker_location_ids: [locations.first.ID],
-              treatment_sub_category_ids: treatments.first.SubCategory.ID,
-              start_date_time: Time.zone.tomorrow.beginning_of_day,
-              end_date_time: Time.zone.tomorrow.end_of_day
-          )
+  booker_location_ids: [location.ID],
+  treatment_sub_category_ids: treatments.first.SubCategory.ID,
+  start_date_time: Time.zone.tomorrow.beginning_of_day,
+  end_date_time: Time.zone.tomorrow.end_of_day
+)
+
+first_result = available_times.first
+first_result_treatment = first_result.Treatment
+first_result_treatment.Name
+# => 60 Minute Swedish Massage
+
+first_available_time = first_result.AvailableTimes.first
+first_available_time.StartDateTime
+# => 2016-01-20 08:00:00 -0800
 ```
 
 ## Available Methods
