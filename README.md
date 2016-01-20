@@ -1,21 +1,55 @@
-# Booker
+# Booker Ruby Client
 
-Private client to interact with Booker business and customer rest api
+Client for the Booker v4 API. See http://apidoc.booker.com for method-level documentation.
 
 ## Set-up
 
-Environment Vars that can be set: 
+Configuration may be specified via the environment or when initializing a Booker::Client:
+
+Configuring via environment variables:
 ```
-ENV['BOOKER_BUSINESS_SERVICE_URL'] can be set for Business Client to not use the sandbox api url
-ENV['BOOKER_CUSTOMER_SERVICE_URL'] can be set for Customer Client to not use the sandbox api url
-ENV['BOOKER_API_DEBUG'] can be set so that more info about requests will be outputted
-ENV['BOOKER_DEFAULT_PAGE_SIZE'] can be set to change the default page size for paginated requests
+BOOKER_CLIENT_ID = YOUR_CLIENT_ID
+BOOKER_CLIENT_SECRET = YOUR_CLIENT_SECRET
+BOOKER_BUSINESS_SERVICE_URL = https://app.secure-booker.com/webservice4/json/BusinessService.svc
+BOOKER_CUSTOMER_SERVICE_URL = https://app.secure-booker.com/webservice4/json/CustomerService.svc
+BOOKER_DEFAULT_PAGE_SIZE = 10
+BOOKER_API_DEBUG = false # Set to true to print request details to the log
 ```
 
-Custom logging can be configured, for example:
+To ease development, **the gem points to Booker's API Sandbox at apicurrent-app.booker.ninja by default**. For production, you must specify the service urls via the environment or when initializing Booker::Client.
+
+## Using Booker::Client
+
+There are two client classes. **Booker::CustomerClient** is used to interact with the v4 CustomerService. **Booker::BusinessClient** is used to interact with the v4 BusinessService.
+
+The client handles authorization and requesting new access tokens as needed.
+
 ```
-Booker.config[:log_message] = -> (message, extra_info) { Raven.capture_message(message, extra: extra_info) }
+# Initialize your client
+
+business_client = Booker::BusinessClient.new(
+  booker_account_name: self.booker_account_name,
+  booker_username: self.booker_username,
+  booker_password: self.booker_password
+)
+
+# Make requests
+
+locations = client.find_locations
+
+treatments = client.find_treatments(booker_location_id: locations.first.ID)
 ```
+
+## Available Methods
+
+For available methods, see:
+* [common_rest.rb](lib/booker/common_rest.rb)
+* [business_rest.rb](lib/booker/business_rest.rb)
+* [customer_rest.rb](lib/booker/customer_rest.rb)
+
+## Handling dates and times
+
+ActiveSupport::TimeWithZone is a required dependency that allows the gem to seamlessly transforms timestamps from Booker's format to Ruby `Time` objects in the current `Time.zone`.
 
 ## Contributing
 
