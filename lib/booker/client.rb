@@ -52,28 +52,7 @@ module Booker
           # TODO (#111186744): Add logging to see if any pages with less than expected data (as seen in the /appointments endpoint)
           new_params = params.deep_dup
           new_params['PageNumber'] = page_number + 1
-
-          begin
-            paginated_request(method: method, path: path, params: new_params, model: model, fetched: fetched)
-
-          # Skip broken pages as a temporary fix for booker api issues. Remove once resolved by Booker!
-          rescue Booker::Error => ex
-            if ex.try(:response).try(:[], 'Fault').try(:[], 'Detail').try(:[], 'InternalErrorFault').try(:[], 'ErrorCode').to_i == 100000
-              #try the next page
-              log_issue("Skipping page of #{path} due to API error.",
-                                    extra: {
-                                        booker_error: ex.error,
-                                        booker_error_description: ex.description,
-                                        booker_request: ex.request.to_s,
-                                        booker_response: ex.response.to_s
-                                    }
-              )
-              new_params['PageNumber'] += 1
-              paginated_request(method: method, path: path, params: new_params, model: model, fetched: fetched)
-            else
-              raise ex
-            end
-          end
+          paginated_request(method: method, path: path, params: new_params, model: model, fetched: fetched)
         else
           fetched
         end
