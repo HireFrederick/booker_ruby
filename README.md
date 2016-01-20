@@ -49,7 +49,7 @@ For available methods, see:
 
 ## Handling dates and times
 
-ActiveSupport::TimeWithZone is a required dependency that allows the gem to seamlessly transforms timestamps from Booker's format to Ruby `Time` objects in the current `Time.zone`.
+ActiveSupport::TimeWithZone is a required dependency that allows the gem to seamlessly convert Ruby `Time` objects to and from Booker in the current `Time.zone`. All timestamps will always be returned in the current `Time.zone` as Booker's API is not timezone aware.
 
 ## Contributing
 
