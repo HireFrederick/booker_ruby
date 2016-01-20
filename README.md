@@ -49,7 +49,9 @@ For available methods, see:
 
 ## Handling dates and times
 
-ActiveSupport::TimeWithZone is a required dependency that allows the gem to seamlessly convert Ruby `Time` objects to and from Booker in the current `Time.zone`.
+Booker's API expects all timestamps to be in their server's timezone offset, which is always US Eastern Time, as the API is not timezone aware. This gem handles all of this for you and will always provide Ruby `ActiveSupport::TimeWithZone` objects in your current `Time.zone`.
+
+ActiveSupport::TimeWithZone is a required dependency.
 
 ## Contributing
 
