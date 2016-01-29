@@ -28,9 +28,9 @@ The client handles authorization and requesting new access tokens as needed.
 # Use BusinessClient to interact with the v4 BusinessService on behalf of a merchant
 
 business_client = Booker::BusinessClient.new(
-  booker_account_name: self.booker_account_name,
-  booker_username: self.booker_username,
-  booker_password: self.booker_password
+  booker_account_name: 'accountname',
+  booker_username: 'myusername',
+  booker_password: 'secret'
 )
 
 logged_in_user = business_client.get_logged_in_user
