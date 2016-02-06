@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email       = ['friends@hirefrederick.com']
   s.homepage    = 'https://github.com/hirefrederick/booker_ruby'
   s.summary       = %q{
-    Private client to interact with Booker business and customer rest api
+    Ruby client for the Booker v4 API - http://apidoc.booker.com
   }
   s.license       = 'MIT'
   s.files       = Dir['{lib}/**/*', 'MIT-LICENSE', 'README.rdoc']
