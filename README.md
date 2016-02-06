@@ -2,6 +2,8 @@
 
 Client for the Booker v4 API. See http://apidoc.booker.com for method-level documentation.
 
+[ ![Codeship Status for HireFrederick/booker_ruby](https://codeship.com/projects/a564c190-a133-0133-48cc-22cba843574f/status?branch=master)](https://codeship.com/projects/128449)
+
 ## Setup
 
 Add the gem to your Gemfile:
