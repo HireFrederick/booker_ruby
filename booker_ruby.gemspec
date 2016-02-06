@@ -18,13 +18,11 @@ Gem::Specification.new do |s|
   s.files       = Dir['{lib}/**/*', 'MIT-LICENSE', 'README.rdoc']
 
   s.add_dependency 'httparty', '~> 0.13.1'
-  s.add_dependency 'fast_blank'
-  s.add_dependency 'activesupport', '> 3.0'
+  s.add_dependency 'activesupport', '>= 3.0.0'
   s.add_dependency 'oj', '~> 2.10'
 
   s.add_development_dependency 'bundler', '~> 1.10'
-  s.add_development_dependency 'rspec'
-  s.add_development_dependency 'shoulda-matchers', '= 2.8.0'
-  s.add_development_dependency 'awesome_print'
-  s.add_development_dependency 'timecop'
+  s.add_development_dependency 'rspec', '~> 3.0'
+  s.add_development_dependency 'shoulda-matchers', '~> 2.8.0'
+  s.add_development_dependency 'timecop', '>= 0.7.0'
 end
