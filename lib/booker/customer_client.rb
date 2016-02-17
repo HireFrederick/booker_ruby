@@ -17,7 +17,7 @@ module Booker
     def access_token_options; super.merge!(grant_type: 'client_credentials'); end
 
     def update_token_store
-      token_store.send(token_store_callback_method, self.temp_access_token, self.temp_access_token_expires_at)
+      self.token_store.send(self.token_store_callback_method, self.temp_access_token, self.temp_access_token_expires_at)
     end
   end
 end
