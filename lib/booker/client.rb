@@ -1,14 +1,15 @@
 module Booker
   class Client
-    attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at, :token_store, :token_store_callback_method
+    attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at
 
     TimeZone = 'Eastern Time (US & Canada)'.freeze
 
     def initialize(options = {})
-      options.each do |key, value|
-        send(:"#{key}=", value)
-      end
+      options.each { |key, value| send(:"#{key}=", value) }
+      self.base_url ||= get_base_url
     end
+
+    def get_base_url; ENV[try(:env_base_url_key).to_s] || try(:default_base_url); end
 
     def get(path, params, booker_model=nil)
       booker_resources = get_booker_resources(:get, path, params, nil, booker_model)
@@ -123,6 +124,33 @@ module Booker
       end
     end
 
+    def access_token_options
+      {
+          client_id: self.client_id,
+          client_secret: self.client_secret
+      }
+    end
+
+    def access_token_endpoint; '/access_token'; end
+
+    def access_token_http_method; :get; end
+
+    def update_token_store; nil; end
+
+    def get_access_token
+      http_options = access_token_options
+      response = send(access_token_http_method, access_token_endpoint, http_options, nil).parsed_response
+
+      raise Booker::InvalidApiCredentials.new(http_options, response) unless response.present?
+
+      self.temp_access_token_expires_at = Time.now + response['expires_in'].to_i.seconds
+      self.temp_access_token = response['access_token']
+
+      update_token_store
+
+      self.temp_access_token
+    end
+
     private
       def request_options(query=nil, body=nil)
         options = {
@@ -132,14 +160,8 @@ module Booker
           timeout: 120
         }
 
-        if body.present?
-          options[:body] = body
-        end
-
-        if query.present?
-          options[:query] = query
-        end
-
+        options[:body] = body if body.present?
+        options[:query] = query if query.present?
         options
       end
 
@@ -157,12 +179,6 @@ module Booker
 
       def temp_access_token_expired?
         self.temp_access_token_expires_at.nil? || self.temp_access_token_expires_at <= Time.now
-      end
-
-      def update_token_store
-        if self.token_store && self.token_store_callback_method
-          token_store.send(token_store_callback_method, self.temp_access_token, self.temp_access_token_expires_at)
-        end
       end
 
       def results_from_response(response, booker_model=nil)
