@@ -2,6 +2,8 @@ module Booker
   class Client
     attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at
 
+    ACCESS_TOKEN_HTTP_METHOD = :get
+    ACCESS_TOKEN_ENDPOINT = '/access_token'.freeze
     TimeZone = 'Eastern Time (US & Canada)'.freeze
 
     def initialize(options = {})
@@ -131,15 +133,11 @@ module Booker
       }
     end
 
-    def access_token_endpoint; '/access_token'; end
-
-    def access_token_http_method; :get; end
-
     def update_token_store; nil; end
 
     def get_access_token
       http_options = access_token_options
-      response = send(access_token_http_method, access_token_endpoint, http_options, nil).parsed_response
+      response = send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil).parsed_response
 
       raise Booker::InvalidApiCredentials.new(http_options, response) unless response.present?
 

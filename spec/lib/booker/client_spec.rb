@@ -16,6 +16,14 @@ describe Booker::Client do
     )
   end
 
+  describe 'constants' do
+    it 'sets constants to right vals' do
+      expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :get
+      expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/access_token'
+      expect(described_class::TimeZone).to eq 'Eastern Time (US & Canada)'
+    end
+  end
+
   describe '.new' do
     it 'builds a client with the valid options given' do
       expect(client.base_url).to eq base_url
@@ -463,18 +471,6 @@ describe Booker::Client do
                                                  client_id: client_id,
                                                  client_secret: client_secret
                                              )
-    end
-  end
-
-  describe '#access_token_endpoint' do
-    it 'returns access_token_endpoint' do
-      expect(client.access_token_endpoint).to eq '/access_token'
-    end
-  end
-
-  describe '#access_token_http_method' do
-    it 'returns access_token_http_method' do
-      expect(client.access_token_http_method).to eq :get
     end
   end
 

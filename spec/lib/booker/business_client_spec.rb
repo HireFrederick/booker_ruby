@@ -21,6 +21,13 @@ describe Booker::BusinessClient do
     )
   end
 
+  describe 'constants' do
+    it 'sets constants to right vals' do
+      expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :post
+      expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/accountlogin'
+    end
+  end
+
   describe 'modules' do
     it 'has right modules included' do
       expect(described_class.ancestors).to include Booker::BusinessREST

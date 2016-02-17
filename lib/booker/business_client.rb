@@ -2,15 +2,14 @@ module Booker
   class BusinessClient < Client
     include Booker::BusinessREST
 
+    ACCESS_TOKEN_HTTP_METHOD = :post
+    ACCESS_TOKEN_ENDPOINT = '/accountlogin'.freeze
+
     attr_accessor :booker_account_name, :booker_username, :booker_password
 
     def env_base_url_key; 'BOOKER_BUSINESS_SERVICE_URL'; end
 
     def default_base_url; 'https://apicurrent-app.booker.ninja/webservice4/json/BusinessService.svc'; end
-
-    def access_token_endpoint; '/accountlogin'; end
-
-    def access_token_http_method; :post; end
 
     def access_token_options
       super.merge!(
