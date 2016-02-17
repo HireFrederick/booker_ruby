@@ -1,13 +1,75 @@
 require 'spec_helper'
 
 describe Booker::Client do
-  let(:client) { Booker::Client.new(base_url: 'http://foo', temp_access_token: 'token', temp_access_token_expires_at: Time.now + 1.minute) }
+  let(:base_url) { 'http://foo' }
+  let(:client_id) { 'client_id' }
+  let(:client_secret) { 'client_secret' }
+  let(:temp_access_token) { 'temp_access_token' }
+  let(:temp_access_token_expires_at) { Time.now + 1.minute }
+  let(:client) do
+    Booker::Client.new(
+        base_url: base_url,
+        temp_access_token: temp_access_token,
+        temp_access_token_expires_at: temp_access_token_expires_at,
+        client_id: client_id,
+        client_secret: client_secret
+    )
+  end
+
+  describe 'constants' do
+    it 'sets constants to right vals' do
+      expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :get
+      expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/access_token'
+      expect(described_class::TimeZone).to eq 'Eastern Time (US & Canada)'
+    end
+  end
 
   describe '.new' do
     it 'builds a client with the valid options given' do
-      expect(client.base_url).to eq 'http://foo'
-      expect(client.temp_access_token).to eq 'token'
-      expect(client.temp_access_token_expires_at).to be_a(Time)
+      expect(client.base_url).to eq base_url
+      expect(client.temp_access_token).to eq temp_access_token
+      expect(client.temp_access_token_expires_at).to eq temp_access_token_expires_at
+      expect(client.client_id).to eq client_id
+      expect(client.client_secret).to eq client_secret
+    end
+  end
+
+  describe '#get_base_url' do
+    let(:env_base_url_key) { 'foo' }
+
+    before { expect(client).to receive(:env_base_url_key).with(no_args).and_return(env_base_url_key) }
+
+    context 'no urls' do
+      let(:default_base_url) { nil }
+
+      before { expect(client).to receive(:default_base_url).with(no_args).and_return(default_base_url) }
+
+      it 'returns nil' do
+        expect(client.get_base_url).to eq nil
+      end
+    end
+
+    context 'env_base_url_key returns value from ENV' do
+      let(:env_url) { 'env_url' }
+
+      before do
+        expect(ENV).to receive(:[]).with(env_base_url_key).and_return(env_url)
+        expect(client).to_not receive(:default_base_url)
+      end
+
+      it 'returns env_url' do
+        expect(client.get_base_url).to eq env_url
+      end
+    end
+
+    context 'default_base_url returns val' do
+      let(:default_base_url) { 'default_base_url' }
+
+      before { expect(client).to receive(:default_base_url).with(no_args).and_return(default_base_url) }
+
+      it 'returns nil' do
+        expect(client.get_base_url).to eq default_base_url
+      end
     end
   end
 
@@ -399,6 +461,74 @@ describe Booker::Client do
       it 'does not call the block' do
         expect(Booker).to receive(:config).and_return({})
         expect_any_instance_of(Proc).to_not receive(:call)
+      end
+    end
+  end
+
+  describe '#access_token_options' do
+    it 'returns right access_token_options' do
+      expect(client.access_token_options).to eq(
+                                                 client_id: client_id,
+                                                 client_secret: client_secret
+                                             )
+    end
+  end
+
+  describe '#update_token_store' do
+    it 'returns nil' do
+      expect(client.update_token_store).to eq nil
+    end
+  end
+
+  describe '#get_access_token' do
+    let(:temp_access_token) { nil }
+    let(:temp_access_token_expires_at) { nil }
+    let(:http_options) do
+      {
+          client_id: client_id,
+          client_secret: client_secret,
+      }
+    end
+    let(:now) { Time.parse('2015-01-09') }
+    let(:expires_in) { 100 }
+    let(:expires_at) { now + expires_in }
+    let(:access_token) { 'access_token' }
+    let(:parsed_response) do
+      {
+          'expires_in' => expires_in.to_s,
+          'access_token' => access_token
+
+      }
+    end
+    let(:response) { 'response' }
+
+    before do
+      allow(Time).to receive(:now).with(no_args).and_return(now)
+      expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
+      expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
+    end
+
+    context 'response present' do
+      before { expect(client).to receive(:update_token_store).with(no_args) }
+
+      it 'sets token info and returns a temp access token' do
+        token = client.get_access_token
+        expect(token).to eq access_token
+        expect(token).to eq client.temp_access_token
+        expect(client.temp_access_token_expires_at).to be_a Time
+        expect(client.temp_access_token_expires_at).to eq expires_at
+      end
+    end
+
+    context 'response not present' do
+      let(:parsed_response) { {} }
+
+      before { expect(client).to_not receive(:update_token_store) }
+
+      it 'raises Booker::InvalidApiCredentials, does not set token info' do
+        expect { client.get_access_token }.to raise_error Booker::InvalidApiCredentials
+        expect(client.temp_access_token_expires_at).to eq nil
+        expect(client.temp_access_token).to eq nil
       end
     end
   end

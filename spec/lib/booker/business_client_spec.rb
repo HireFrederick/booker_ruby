@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Booker::BusinessClient do
+  let(:base_url) { 'https://apicurrent-app.booker.ninja/webservice4/json/BusinessService.svc' }
   let(:temp_access_token) { 'token' }
   let(:temp_access_token_expires_at) { Time.now + 1.minute }
   let(:client_id) { 'client_id' }
@@ -18,6 +19,19 @@ describe Booker::BusinessClient do
         booker_username: booker_username,
         booker_password: booker_password
     )
+  end
+
+  describe 'constants' do
+    it 'sets constants to right vals' do
+      expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :post
+      expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/accountlogin'
+    end
+  end
+
+  describe 'modules' do
+    it 'has right modules included' do
+      expect(described_class.ancestors).to include Booker::BusinessREST
+    end
   end
 
   describe '#initialize' do
@@ -39,7 +53,29 @@ describe Booker::BusinessClient do
     end
   end
 
-  describe '#get_access_token' do
+  describe '#env_base_url_key' do
+    it('returns env_base_url_key') { expect(subject.env_base_url_key).to eq 'BOOKER_BUSINESS_SERVICE_URL' }
+  end
+
+  describe '#default_base_url' do
+    it('returns default_base_url') do
+      expect(subject.default_base_url).to eq base_url
+    end
+  end
+
+  describe '#access_token_options' do
+    it('returns access_token_options') do
+      expect(client.access_token_options).to eq(
+                                                 client_id: client_id,
+                                                 client_secret: client_secret,
+                                                 'AccountName' => booker_account_name,
+                                                 'UserName' => booker_username,
+                                                 'Password' => booker_password
+                                             )
+    end
+  end
+
+  describe 'super #get_access_token' do
     let(:temp_access_token) { nil }
     let(:temp_access_token_expires_at) { nil }
     let(:http_options) do

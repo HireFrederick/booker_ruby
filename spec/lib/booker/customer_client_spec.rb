@@ -1,27 +1,52 @@
 require 'spec_helper'
 
 describe Booker::CustomerClient do
+  let(:base_url) { 'https://apicurrent-app.booker.ninja/webservice4/json/CustomerService.svc' }
+  let(:temp_access_token) { 'token' }
+  let(:temp_access_token_expires_at) { Time.now + 1.minute }
   let(:client_id) { 'client_id' }
   let(:client_secret) { 'client_secret' }
   let(:client) do
     Booker::CustomerClient.new(
+        temp_access_token: temp_access_token,
+        temp_access_token_expires_at: temp_access_token_expires_at,
         client_id: client_id,
         client_secret: client_secret
     )
   end
+  let(:token_store) { Booker::GenericTokenStore }
+  let(:token_store_callback_method) { :update_booker_access_token! }
 
   it { is_expected.to be_a Booker::Client}
 
+  describe 'modules' do
+    it 'has right modules included' do
+      expect(described_class.ancestors).to include Booker::CustomerREST
+    end
+  end
+
   describe '#initialize' do
+    let(:base_url_override) { 'base_url' }
+    let(:token_store_override) { 'string' }
+    let(:token_store_callback_method_override) { 'token_store_callback_method' }
+    let(:client) do
+      Booker::CustomerClient.new(
+          base_url: base_url_override,
+          token_store: token_store_override,
+          token_store_callback_method: token_store_callback_method_override
+      )
+    end
+
     it 'sets the default values' do
-      expect(subject.base_url).to eq 'https://apicurrent-app.booker.ninja/webservice4/json/CustomerService.svc'
-      expect(subject.token_store).to be Booker::GenericTokenStore
-      expect(subject.token_store_callback_method).to be :update_booker_access_token!
+      expect(subject.base_url).to eq base_url
+      expect(subject.token_store).to eq token_store
+      expect(subject.token_store_callback_method).to be token_store_callback_method
     end
 
     it 'allows defaults to be overridden' do
-      client = Booker::CustomerClient.new(base_url: 'http://foo')
-      expect(client.base_url).to eq 'http://foo'
+      expect(client.base_url).to eq base_url_override
+      expect(client.token_store).to eq token_store_override
+      expect(client.token_store_callback_method).to eq token_store_callback_method_override
     end
 
     context "ENV['BOOKER_CUSTOMER_SERVICE_URL'] is set" do
@@ -32,8 +57,38 @@ describe Booker::CustomerClient do
       end
     end
   end
+  
+  describe '#env_base_url_key' do
+    it('returns env_base_url_key') { expect(subject.env_base_url_key).to eq 'BOOKER_CUSTOMER_SERVICE_URL' }
+  end
 
-  describe '#get_access_token' do
+  describe '#default_base_url' do
+    it('returns default_base_url') do
+      expect(subject.default_base_url).to eq base_url
+    end
+  end
+
+  describe '#access_token_options' do
+    it('returns access_token_options') do
+      expect(client.access_token_options).to eq(
+        client_id: client_id,
+        client_secret: client_secret,
+        grant_type: 'client_credentials'
+      )
+    end
+  end
+
+  describe '#update_token_store' do
+    after { client.update_token_store }
+
+    it 'calls the token store with the correct method and args' do
+      expect(token_store).to receive(token_store_callback_method).with(temp_access_token, temp_access_token_expires_at)
+    end
+  end
+
+  describe 'super #get_access_token' do
+    let(:temp_access_token) { nil }
+    let(:temp_access_token_expires_at) { nil }
     let(:http_options) do
       {
           client_id: client_id,
