@@ -1,6 +1,7 @@
 module Booker
   class Client
-    attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at
+    attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at,
+                  :token_store, :token_store_callback_method
 
     ACCESS_TOKEN_HTTP_METHOD = :get
     ACCESS_TOKEN_ENDPOINT = '/access_token'.freeze
@@ -133,7 +134,11 @@ module Booker
       }
     end
 
-    def update_token_store; nil; end
+    def update_token_store
+      if self.token_store.present? && self.token_store_callback_method.present?
+        self.token_store.send(self.token_store_callback_method, self.temp_access_token, self.temp_access_token_expires_at)
+      end
+    end
 
     def get_access_token
       http_options = access_token_options

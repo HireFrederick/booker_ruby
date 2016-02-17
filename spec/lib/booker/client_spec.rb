@@ -12,9 +12,13 @@ describe Booker::Client do
         temp_access_token: temp_access_token,
         temp_access_token_expires_at: temp_access_token_expires_at,
         client_id: client_id,
-        client_secret: client_secret
+        client_secret: client_secret,
+        token_store: token_store,
+        token_store_callback_method: token_store_callback_method
     )
   end
+  let(:token_store) { Booker::GenericTokenStore }
+  let(:token_store_callback_method) { :update_booker_access_token! }
 
   describe 'constants' do
     it 'sets constants to right vals' do
@@ -474,12 +478,6 @@ describe Booker::Client do
     end
   end
 
-  describe '#update_token_store' do
-    it 'returns nil' do
-      expect(client.update_token_store).to eq nil
-    end
-  end
-
   describe '#get_access_token' do
     let(:temp_access_token) { nil }
     let(:temp_access_token_expires_at) { nil }
@@ -529,6 +527,30 @@ describe Booker::Client do
         expect { client.get_access_token }.to raise_error Booker::InvalidApiCredentials
         expect(client.temp_access_token_expires_at).to eq nil
         expect(client.temp_access_token).to eq nil
+      end
+    end
+  end
+
+  describe '#update_token_store' do
+    after { client.update_token_store }
+
+    it 'calls the token store with the correct method and args' do
+      expect(token_store).to receive(token_store_callback_method).with(temp_access_token, temp_access_token_expires_at)
+    end
+
+    context 'token store nil' do
+      let(:token_store) { nil }
+
+      it 'does not call the token store' do
+        expect(token_store).to_not receive(token_store_callback_method)
+      end
+    end
+
+    context 'token_store_callback_method store nil' do
+      let(:token_store_callback_method) { '' }
+
+      it 'does not call the token store' do
+        expect(token_store).to_not receive(token_store_callback_method)
       end
     end
   end

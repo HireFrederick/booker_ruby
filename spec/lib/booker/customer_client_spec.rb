@@ -78,14 +78,6 @@ describe Booker::CustomerClient do
     end
   end
 
-  describe '#update_token_store' do
-    after { client.update_token_store }
-
-    it 'calls the token store with the correct method and args' do
-      expect(token_store).to receive(token_store_callback_method).with(temp_access_token, temp_access_token_expires_at)
-    end
-  end
-
   describe 'super #get_access_token' do
     let(:temp_access_token) { nil }
     let(:temp_access_token_expires_at) { nil }
