@@ -14,7 +14,8 @@ describe Booker::Models::Location do
       'WebSite',
       'IsDistributionPartner',
       'EncryptedLocationID',
-      'BrandAccountName'
+      'BrandAccountName',
+      'LogoUrl'
     ].each do |attr|
       expect(subject).to respond_to(attr)
       expect(subject).to respond_to("#{attr}=")

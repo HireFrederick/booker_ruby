@@ -12,7 +12,8 @@ module Booker
                     'WebSite',
                     'IsDistributionPartner',
                     'EncryptedLocationID',
-                    'BrandAccountName'
+                    'BrandAccountName',
+                    'LogoUrl'
     end
   end
 end
