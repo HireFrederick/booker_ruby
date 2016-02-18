@@ -13,7 +13,10 @@ module Booker
                     'IsDistributionPartner',
                     'EncryptedLocationID',
                     'BrandAccountName',
-                    'LogoUrl'
+                    'LogoUrl',
+                    'BusinessType',
+                    'FirstName',
+                    'LastName'
     end
   end
 end
