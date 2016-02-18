@@ -142,7 +142,7 @@ module Booker
 
     def get_access_token
       http_options = access_token_options
-      response = send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil).parsed_response
+      response = access_token_response(http_options)
 
       raise Booker::InvalidApiCredentials.new(http_options, response) unless response.present?
 
@@ -152,6 +152,10 @@ module Booker
       update_token_store
 
       self.temp_access_token
+    end
+
+    def access_token_response(http_options)
+      send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil).parsed_response
     end
 
     private
