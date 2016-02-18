@@ -19,6 +19,13 @@ describe Booker::Client do
   end
   let(:token_store) { Booker::GenericTokenStore }
   let(:token_store_callback_method) { :update_booker_access_token! }
+  let(:http_options) do
+    {
+        client_id: client_id,
+        client_secret: client_secret,
+    }
+  end
+  let(:response) { 'response' }
 
   describe 'constants' do
     it 'sets constants to right vals' do
@@ -481,12 +488,6 @@ describe Booker::Client do
   describe '#get_access_token' do
     let(:temp_access_token) { nil }
     let(:temp_access_token_expires_at) { nil }
-    let(:http_options) do
-      {
-          client_id: client_id,
-          client_secret: client_secret,
-      }
-    end
     let(:now) { Time.parse('2015-01-09') }
     let(:expires_in) { 100 }
     let(:expires_at) { now + expires_in }
@@ -498,7 +499,6 @@ describe Booker::Client do
 
       }
     end
-    let(:response) { 'response' }
 
     before do
       allow(Time).to receive(:now).with(no_args).and_return(now)
@@ -552,6 +552,19 @@ describe Booker::Client do
       it 'does not call the token store' do
         expect(token_store).to_not receive(token_store_callback_method)
       end
+    end
+  end
+
+  describe '#access_token_response' do
+    let(:parsed_response) { 'parsed_response' }
+
+    after { expect(client.access_token_response(http_options)).to eq parsed_response }
+
+    it 'calls the token store' do
+      expect(client).to receive(described_class::ACCESS_TOKEN_HTTP_METHOD)
+                            .with(described_class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
+                            .and_return(response)
+      expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
     end
   end
 end
