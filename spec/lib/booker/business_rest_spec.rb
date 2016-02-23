@@ -32,22 +32,71 @@ describe Booker::BusinessREST do
   end
 
   describe '#get_location' do
-    let(:result) { client.get_location(booker_location_id: 10257) }
+    let(:result) { client.get_location(booker_location_id: booker_location_id) }
     let(:expected_params) {{
       'access_token' => 'access_token'
     }}
     let(:response) {{
-      'ID' => 10257
+      'ID' => booker_location_id
     }}
 
     before do
       expect(client).to receive(:access_token).and_return 'access_token'
-      expect(client).to receive(:get).with('/location/10257', expected_params).and_return(response)
+      expect(client).to receive(:get).with("/location/#{booker_location_id}", expected_params).and_return(response)
     end
 
     it 'delegates to get and returns' do
       expect(result).to be_a Booker::Models::Location
-      expect(result.ID).to be 10257
+      expect(result.ID).to be booker_location_id
+    end
+  end
+
+  describe '#get_location_day_schedules' do
+    let(:result) { client.get_location_day_schedules(booker_location_id: booker_location_id) }
+    let(:access_token) { 'access_token' }
+    let(:now) { Time.parse('2014-01-01') }
+    let(:random_datetime) { Booker::Models::Model.time_to_booker_datetime(now) }
+    let(:additional_params) do
+      {
+          'getDefaultDaySchedule' => true,
+          'fromDate' => random_datetime,
+          'toDate' => random_datetime
+      }
+    end
+    let(:expected_params) do
+      {
+          'access_token' => access_token,
+      }.merge(additional_params)
+    end
+    let(:start_time) { Time.parse('2014-01-09') }
+    let(:end_time) { Time.parse('2014-01-10') }
+    let(:location_day_sched_resp) { {'Weekday' => 'Sunday', 'StartTime' => start_time} }
+    let(:location_day_sched_resp2) { {'Weekday' => 'Tuesday', 'EndTime' => end_time} }
+    let(:response) { {'LocationDaySchedules' => [location_day_sched_resp, location_day_sched_resp2]} }
+    let(:first_result) { result.first }
+    let(:second_result) { result[1] }
+
+    before do
+      allow(Time).to receive(:now).and_return(now)
+      expect(client).to receive(:access_token).and_return access_token
+      expect(client).to receive(:build_params).with(additional_params, {}).and_call_original
+      expect(Booker::Models::LocationDaySchedule).to receive(:from_hash).with(location_day_sched_resp).and_call_original
+      expect(Booker::Models::LocationDaySchedule).to receive(:from_hash).with(location_day_sched_resp2).and_call_original
+      expect(client).to receive(:get).with("/location/#{booker_location_id}/schedule", expected_params).and_return(response)
+    end
+
+    it 'delegates to get and returns' do
+      expect(result.length).to eq 2
+
+      expect(first_result).to be_a Booker::Models::LocationDaySchedule
+      expect(first_result.Weekday).to eq 0
+      expect(first_result.StartTime).to eq start_time.strftime('%T')
+      expect(first_result.EndTime).to eq nil
+
+      expect(second_result).to be_a Booker::Models::LocationDaySchedule
+      expect(second_result.Weekday).to eq 2
+      expect(second_result.StartTime).to eq nil
+      expect(second_result.EndTime).to eq end_time.strftime('%T')
     end
   end
 
@@ -193,7 +242,7 @@ describe Booker::BusinessREST do
     let(:to_start_date) { Time.zone.at(1469743856) }
     let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         'access_token' => 'access_token',
-        'LocationID' => 10257,
+        'LocationID' => booker_location_id,
         'FromStartDate' => '/Date(1375053503000)/',
         'ToStartDate' => '/Date(1469758256000)/'
       })}
@@ -216,7 +265,7 @@ describe Booker::BusinessREST do
     context 'other options' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
           'access_token' => 'access_token',
-          'LocationID' => 10257,
+          'LocationID' => booker_location_id,
           'FromStartDate' => '/Date(1375053503000)/',
           'ToStartDate' => '/Date(1469758256000)/',
           'another_option' => 'foo'
@@ -246,7 +295,7 @@ describe Booker::BusinessREST do
     }}
     let(:result) do
       client.create_special(
-          booker_location_id: 10257,
+          booker_location_id: booker_location_id,
           start_date: start_date,
           end_date: end_date,
           coupon_code: coupon_code,
@@ -256,7 +305,7 @@ describe Booker::BusinessREST do
     end
     let(:expected_params) {{
         'access_token' => 'access_token',
-        'LocationID' =>10257,
+        'LocationID' =>booker_location_id,
         'ApplicableStartDate' => '/Date(1438675200000)/',
         'ApplicableEndDate' => '/Date(1438761599000)/',
         'CouponCode' => 'fred123456',

@@ -15,6 +15,16 @@ module Booker
       Booker::Models::Location.from_hash(response)
     end
 
+    def get_location_day_schedules(booker_location_id:, params: {})
+      # Booker requires fromDate and toDate for JSON API, but does not use them when getDefaultDaySchedule is true
+      # So datetime used for these fields does not matter
+      random_datetime = Booker::Models::Model.time_to_booker_datetime(Time.now)
+
+      additional_params = {'getDefaultDaySchedule' => true, 'fromDate' => random_datetime, 'toDate' => random_datetime}
+      response = get("/location/#{booker_location_id}/schedule", build_params(additional_params, params))
+      response['LocationDaySchedules'].map { |sched| Booker::Models::LocationDaySchedule.from_hash(sched) }
+    end
+
     def find_locations(params: {})
       paginated_request(
           method: :post,

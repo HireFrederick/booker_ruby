@@ -65,12 +65,6 @@ module Booker
       end
     end
 
-    def log_issue(message, extra_info = {})
-      if (log_message_block = Booker.config[:log_message])
-        log_message_block.call(message, extra_info)
-      end
-    end
-
     def get_booker_resources(http_method, path, params=nil, body=nil, booker_model=nil)
       http_options = request_options(params, body)
       puts "BOOKER REQUEST: #{http_method} #{path} #{http_options}" if ENV['BOOKER_API_DEBUG'] == 'true'

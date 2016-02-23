@@ -197,7 +197,6 @@ describe Booker::Client do
         before do
           expect(client).to receive(:send).with('method', path, params_2, Booker::Models::Model).and_return(results2)
           expect(client).to receive(:send).with('method', path, params_3, Booker::Models::Model).and_return(results3)
-          expect(client).to_not receive(:log_issue)
         end
 
         it 'calls the request method for each page, returning the combined result set' do
@@ -454,24 +453,6 @@ describe Booker::Client do
 
       it 'returns the resp' do
         expect(client.handle_errors!('foo', resp))
-      end
-    end
-  end
-
-  describe '#log_issue' do
-    let(:message) { 'message' }
-    let(:extra_info) { 'extra' }
-
-    after { client.log_issue(message, extra_info) }
-
-    it 'calls the log message block' do
-      expect(Booker.config[:log_message]).to receive(:call).with(message, extra_info)
-    end
-
-    context 'log message block not set' do
-      it 'does not call the block' do
-        expect(Booker).to receive(:config).and_return({})
-        expect_any_instance_of(Proc).to_not receive(:call)
       end
     end
   end
