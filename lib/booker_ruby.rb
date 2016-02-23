@@ -69,6 +69,7 @@ require 'booker/models/available_time'
 require 'booker/models/class_instance'
 require 'booker/models/online_booking_settings'
 require 'booker/models/user'
+require 'booker/models/location_day_schedule'
 
 # Base Client
 require 'booker/client'
@@ -84,3 +85,7 @@ require 'booker/generic_token_store'
 # Client Subclasses
 require 'booker/business_client'
 require 'booker/customer_client'
+
+# Helpers
+require 'booker/helpers/logging_helper'
+require 'booker/helpers/active_support_helper'

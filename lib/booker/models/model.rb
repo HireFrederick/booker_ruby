@@ -1,11 +1,8 @@
 module Booker
   module Models
     class Model
-
       def initialize(options = {})
-        options.each do |key, value|
-          send(:"#{key}=", value)
-        end
+        options.each { |key, value| send(:"#{key}=", value) }
       end
 
       def to_hash
@@ -29,9 +26,7 @@ module Booker
         hash
       end
 
-      def to_json
-        Oj.dump(to_hash, mode: :compat)
-      end
+      def to_json; Oj.dump(to_hash, mode: :compat); end
 
       def self.from_hash(hash)
         model = self.new
@@ -58,9 +53,7 @@ module Booker
         model
       end
 
-      def self.from_list(array)
-        array.map{|item| self.from_hash(item)}
-      end
+      def self.from_list(array); array.map { |item| self.from_hash(item) }; end
 
       def self.constantize(key)
         begin
@@ -105,8 +98,42 @@ module Booker
         "/Date(#{timestamp})/"
       end
 
-      private
+      def self.timezone_from_booker_timezone(booker_timezone_name)
+        normalized_booker_timezone_name = Booker::Helpers::ActiveSupport.to_active_support(booker_timezone_name)
+        return normalized_booker_timezone_name if normalized_booker_timezone_name.present?
 
+        begin
+          Booker::Helpers::LoggingHelper.log_issue(
+              'Unable to find time zone name using Booker::Helpers::ActiveSupport.to_active_support',
+              booker_timezone_name: booker_timezone_name
+          )
+        rescue
+        end
+
+        timezone_from_booker_offset!(booker_timezone_name)
+      end
+
+      def self.timezone_from_booker_offset!(booker_timezone_name)
+        booker_offset_match = booker_timezone_name.scan(/(\A)(.*)(?=\))/).first
+
+        if booker_offset_match.present?
+          booker_offset = booker_offset_match.delete_if { |match| match.blank? }.first
+
+          if booker_offset
+            booker_timezone_map_key = Booker::Helpers::ActiveSupport.booker_timezone_names.find do |key|
+              key.start_with?(booker_offset)
+            end
+
+            return Booker::Helpers::ActiveSupport.to_active_support(booker_timezone_map_key) if booker_timezone_map_key
+          end
+        end
+
+        raise Booker::Error
+      end
+
+      def self.to_wday(booker_wday); Date.parse(booker_wday).wday; end
+
+      private
         def hash_list(array)
           array.map do |item|
             if item.is_a? Array
