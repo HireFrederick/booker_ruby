@@ -100,14 +100,14 @@ describe Booker::CustomerClient do
       }
     end
 
-    before do
-      allow(Time).to receive(:now).with(no_args).and_return(now)
-      expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(true)
-      expect(true).to receive(:parsed_response).with(no_args).and_return(response)
-    end
+    before { allow(Time).to receive(:now).with(no_args).and_return(now) }
 
     context 'response present' do
-      before { expect(client).to receive(:update_token_store).with(no_args) }
+      before do
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(true)
+        expect(true).to receive(:parsed_response).with(no_args).and_return(response)
+        expect(client).to receive(:update_token_store).with(no_args)
+      end
 
       it 'sets token info and returns a temp access token' do
         expect(token = client.get_access_token).to eq access_token
@@ -120,7 +120,10 @@ describe Booker::CustomerClient do
     context 'response not present' do
       let(:response) { {} }
 
-      before { expect(client).to_not receive(:update_token_store) }
+      before do
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_raise(Booker::Error)
+        expect(client).to_not receive(:update_token_store)
+      end
 
       it 'raises Booker::InvalidApiCredentials, does not set token info' do
         expect { client.get_access_token }.to raise_error Booker::InvalidApiCredentials
