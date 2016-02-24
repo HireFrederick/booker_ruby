@@ -131,9 +131,7 @@ module Booker
 
     def get_access_token
       http_options = access_token_options
-      response = access_token_response(http_options)
-
-      raise Booker::InvalidApiCredentials.new(http_options, response) unless response.present?
+      response = raise_invalid_api_credentials_for_empty_resp! { access_token_response(http_options) }
 
       self.temp_access_token_expires_at = Time.now + response['expires_in'].to_i.seconds
       self.temp_access_token = response['access_token']
@@ -141,6 +139,16 @@ module Booker
       update_token_store
 
       self.temp_access_token
+    end
+
+    def raise_invalid_api_credentials_for_empty_resp!
+      yield
+    rescue Booker::Error => ex
+      if (response = ex.response).present?
+        raise ex
+      else
+        raise Booker::InvalidApiCredentials.new(ex.request, response)
+      end
     end
 
     def access_token_response(http_options)

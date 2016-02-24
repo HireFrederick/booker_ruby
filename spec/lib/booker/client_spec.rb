@@ -482,14 +482,15 @@ describe Booker::Client do
       }
     end
 
-    before do
-      allow(Time).to receive(:now).with(no_args).and_return(now)
-      expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
-      expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
-    end
+    before { allow(Time).to receive(:now).with(no_args).and_return(now) }
 
-    context 'response present' do
-      before { expect(client).to receive(:update_token_store).with(no_args) }
+    context 'raise_invalid_api_credentials_for_empty_resp! yields' do
+      before do
+        expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args).and_call_original
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
+        expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
+        expect(client).to receive(:update_token_store).with(no_args)
+      end
 
       it 'sets token info and returns a temp access token' do
         token = client.get_access_token
@@ -500,15 +501,73 @@ describe Booker::Client do
       end
     end
 
-    context 'response not present' do
+    context 'raise_invalid_api_credentials_for_empty_resp! does not yield' do
       let(:parsed_response) { {} }
 
-      before { expect(client).to_not receive(:update_token_store) }
+      before do
+        expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args)
+        expect(client).to_not receive(:get).with('/access_token', http_options, nil)
+        expect(response).to_not receive(:parsed_response)
+        expect(client).to_not receive(:update_token_store)
+      end
 
       it 'raises Booker::InvalidApiCredentials, does not set token info' do
-        expect { client.get_access_token }.to raise_error Booker::InvalidApiCredentials
+        expect { client.get_access_token }.to raise_error NoMethodError
         expect(client.temp_access_token_expires_at).to eq nil
         expect(client.temp_access_token).to eq nil
+      end
+    end
+  end
+
+  describe '#raise_invalid_api_credentials_for_empty_resp!' do
+    let(:block_string) { 'inside_block' }
+
+    it 'it returns output of block_code' do
+      expect(
+          client.raise_invalid_api_credentials_for_empty_resp! { block_string }
+      ).to be block_string
+    end
+
+    context 'block code raises error' do
+      let(:block_method) { :to_i }
+      let(:request) { 'request' }
+      let(:response) { '' }
+      let(:exception) { Booker::Error.new(request, response) }
+
+      before { expect(block_string).to receive(block_method).and_raise(exception) }
+
+      context 'response not present' do
+        before { expect(Booker::InvalidApiCredentials).to receive(:new).with(request, nil).and_call_original }
+
+        it 'it raises InvalidApiCredentials' do
+          expect{
+            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
+          }.to raise_error Booker::InvalidApiCredentials
+        end
+      end
+
+      context 'response present' do
+        let(:response) { 'response' }
+
+        before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
+
+        it 'it raises Booker::Error' do
+          expect{
+            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
+          }.to raise_error exception.class
+        end
+      end
+
+      context 'error not booker error' do
+        let(:exception) { StandardError }
+
+        before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
+
+        it 'it raises Booker::Error' do
+          expect{
+            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
+          }.to raise_error exception
+        end
       end
     end
   end
