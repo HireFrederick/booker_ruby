@@ -271,21 +271,22 @@ describe Booker::Client do
     let(:resp) { {'Results' => [data]} }
     let(:params) { {foo: 'bar'} }
     let(:body) { {bar: 'foo'} }
-    let(:http_party_options) {
+    let(:http_party_options) do
       {
-        headers: {"Content-Type"=>"application/json; charset=utf-8"},
-        body: body,
-        query: params,
-        timeout: 120
+          headers: {'Content-Type' => 'application/json; charset=utf-8'},
+          body: body,
+          query: params,
+          timeout: 120
       }
-    }
+    end
+    let(:path) { '/blah/blah' }
 
-    before { allow_message_expectations_on_nil }
+    before { expect(client).to receive(:full_url).with(path).and_call_original }
 
     it 'returns the results if they are present' do
       expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
       expect(resp).to receive(:success?).and_return(true)
-      expect(client.get_booker_resources(:get, '/blah/blah', params, body)).to eq [data]
+      expect(client.get_booker_resources(:get, path, params, body)).to eq [data]
     end
 
     context 'model passed in and no Results' do
@@ -294,7 +295,7 @@ describe Booker::Client do
       it 'returns the services if they are present and results is not' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
-        expect(client.get_booker_resources(:get, '/blah/blah', params, body, Booker::Models::Treatment)).to eq [data]
+        expect(client.get_booker_resources(:get, path, params, body, Booker::Models::Treatment)).to eq [data]
       end
 
       context 'singular response' do
@@ -303,7 +304,7 @@ describe Booker::Client do
         it 'returns the data' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
-          expect(client.get_booker_resources(:get, '/blah/blah', params, body, Booker::Models::Treatment)).to eq data
+          expect(client.get_booker_resources(:get, path, params, body, Booker::Models::Treatment)).to eq data
         end
       end
     end
@@ -314,12 +315,12 @@ describe Booker::Client do
       it 'returns the full resp' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
-        expect(client.get_booker_resources(:get, '/blah/blah', params, body)).to eq resp
+        expect(client.get_booker_resources(:get, path, params, body)).to eq resp
       end
     end
 
     context 'response not present on first request' do
-      let(:resp) { nil }
+      let(:resp) { {} }
       let(:resp2) { {'Results' => [data]} }
 
       it 'makes another request, returns results' do
@@ -327,7 +328,7 @@ describe Booker::Client do
         expect(resp).to receive(:success?).and_return(true)
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
         expect(resp2).to receive(:success?).and_return(true)
-        expect(client.get_booker_resources(:get, '/blah/blah', params, body)).to eq [data]
+        expect(client.get_booker_resources(:get, path, params, body)).to eq [data]
       end
 
       context 'no Results' do
@@ -338,19 +339,19 @@ describe Booker::Client do
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
-          expect(client.get_booker_resources(:get, '/blah/blah', params, body)).to eq resp2
+          expect(client.get_booker_resources(:get, path, params, body)).to eq resp2
         end
       end
 
       context 'no response on second request' do
-        let(:resp2) { nil }
+        let(:resp2) { {} }
 
         it 'raises Booker::Error' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
-          expect{client.get_booker_resources(:get, '/blah/blah', params, body)}.to raise_error(Booker::Error)
+          expect{client.get_booker_resources(:get, path, params, body)}.to raise_error(Booker::Error)
         end
       end
     end
@@ -519,8 +520,8 @@ describe Booker::Client do
       expect(token_store).to receive(token_store_callback_method).with(temp_access_token, temp_access_token_expires_at)
     end
 
-    context 'token store nil' do
-      let(:token_store) { nil }
+    context 'token store not present' do
+      let(:token_store) { '' }
 
       it 'does not call the token store' do
         expect(token_store).to_not receive(token_store_callback_method)
@@ -546,6 +547,23 @@ describe Booker::Client do
                             .with(described_class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
                             .and_return(response)
       expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
+    end
+  end
+
+  describe '#full_url' do
+    let(:scheme) { 'http://' }
+    let(:path) { "#{scheme}foo.com/path" }
+
+    it 'returns path if fully qualified url' do
+      expect(client.full_url(path)).to eq path
+    end
+
+    context 'no scheme in path' do
+      let(:scheme) { '' }
+
+      it 'returns base url plus path if no scheme' do
+        expect(client.full_url(path)).to eq "#{base_url}#{path}"
+      end
     end
   end
 end

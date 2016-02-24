@@ -67,11 +67,12 @@ module Booker
 
     def get_booker_resources(http_method, path, params=nil, body=nil, booker_model=nil)
       http_options = request_options(params, body)
-      puts "BOOKER REQUEST: #{http_method} #{path} #{http_options}" if ENV['BOOKER_API_DEBUG'] == 'true'
+      url = full_url(path)
+      puts "BOOKER REQUEST: #{http_method} #{url} #{http_options}" if ENV['BOOKER_API_DEBUG'] == 'true'
 
       # Allow it to retry the first time unless it is an authorization error
       begin
-        booker_resources = handle_errors!(http_options, HTTParty.send(http_method, "#{self.base_url}#{path}", http_options))
+        booker_resources = handle_errors!(http_options, HTTParty.send(http_method, url, http_options))
       rescue Booker::Error, Net::ReadTimeout => ex
         if ex.is_a? Booker::InvalidApiCredentials
           raise ex
@@ -81,17 +82,15 @@ module Booker
         end
       end
 
-      if booker_resources
-        results_from_response(booker_resources, booker_model)
-      else
-        booker_resources = handle_errors!(http_options, HTTParty.send(http_method, "#{self.base_url}#{path}", http_options))
+      return results_from_response(booker_resources, booker_model) if booker_resources.present?
+      booker_resources = handle_errors!(http_options, HTTParty.send(http_method, url, http_options))
+      return results_from_response(booker_resources, booker_model) if booker_resources.present?
+      raise Booker::Error.new(http_options, booker_resources)
+    end
 
-        if booker_resources
-          results_from_response(booker_resources, booker_model)
-        else
-          raise Booker::Error.new(http_options, booker_resources)
-        end
-      end
+    def full_url(path)
+      uri = URI(path)
+      uri.scheme ? path : "#{self.base_url}#{path}"
     end
 
     def handle_errors!(request, response)
@@ -114,11 +113,7 @@ module Booker
     end
 
     def access_token
-      if self.temp_access_token && !temp_access_token_expired?
-        self.temp_access_token
-      else
-        get_access_token
-      end
+      (self.temp_access_token && !temp_access_token_expired?) ? self.temp_access_token : get_access_token
     end
 
     def access_token_options
