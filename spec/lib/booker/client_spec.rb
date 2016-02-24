@@ -539,7 +539,7 @@ describe Booker::Client do
       context 'response not present' do
         before { expect(Booker::InvalidApiCredentials).to receive(:new).with(request, nil).and_call_original }
 
-        it 'it raises InvalidApiCredentials' do
+        it 'raises InvalidApiCredentials' do
           expect{
             client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
           }.to raise_error Booker::InvalidApiCredentials
@@ -551,7 +551,7 @@ describe Booker::Client do
 
         before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
 
-        it 'it raises Booker::Error' do
+        it 'raises Booker::Error' do
           expect{
             client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
           }.to raise_error exception.class
@@ -563,7 +563,7 @@ describe Booker::Client do
 
         before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
 
-        it 'it raises Booker::Error' do
+        it 'raises Booker::Error' do
           expect{
             client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
           }.to raise_error exception
