@@ -62,7 +62,7 @@ describe Booker::Client do
   describe '#get_base_url' do
     let(:env_base_url_key) { 'foo' }
 
-    before { expect(client).to receive(:env_base_url_key).twice.with(no_args).and_return(env_base_url_key) }
+    before { expect(client).to receive(:env_base_url_key).with(no_args).and_return(env_base_url_key) }
 
     context 'no urls' do
       let(:default_base_url) { nil }

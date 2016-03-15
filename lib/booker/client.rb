@@ -14,7 +14,15 @@ module Booker
       self.client_secret ||= ENV['BOOKER_CLIENT_SECRET']
     end
 
-    def get_base_url; ENV[self.env_base_url_key.to_s] || try(:default_base_url) if try(:env_base_url_key); end
+    def get_base_url
+      env_key = try(:env_base_url_key)
+
+      if env_key.present?
+        ENV[env_key] || try(:default_base_url)
+      else
+        try(:default_base_url)
+      end
+    end
 
     def get(path, params, booker_model=nil)
       booker_resources = get_booker_resources(:get, path, params, nil, booker_model)
