@@ -36,12 +36,26 @@ describe Booker::Client do
   end
 
   describe '.new' do
+    before do
+      allow(ENV).to receive(:[]).with('BOOKER_CLIENT_ID').and_return 'id from env'
+      allow(ENV).to receive(:[]).with('BOOKER_CLIENT_SECRET').and_return 'secret from env'
+    end
+
     it 'builds a client with the valid options given' do
       expect(client.base_url).to eq base_url
       expect(client.temp_access_token).to eq temp_access_token
       expect(client.temp_access_token_expires_at).to eq temp_access_token_expires_at
       expect(client.client_id).to eq client_id
       expect(client.client_secret).to eq client_secret
+    end
+
+    context 'without client_id specified' do
+      let(:client) { Booker::Client.new }
+
+      it 'loads from ENV' do
+        expect(client.client_id).to eq 'id from env'
+        expect(client.client_secret).to eq 'secret from env'
+      end
     end
   end
 
