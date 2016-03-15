@@ -40,7 +40,7 @@ business_client = Booker::BusinessClient.new(
 )
 
 logged_in_user = business_client.get_logged_in_user
-location = business_client.get_location(logged_in_user.LocationID)
+location = business_client.get_location(booker_location_id: logged_in_user.LocationID)
 
 location.ID
 # => 45678
