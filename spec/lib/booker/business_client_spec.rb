@@ -45,7 +45,11 @@ describe Booker::BusinessClient do
     end
 
     context "ENV['BOOKER_BUSINESS_SERVICE_URL'] is set" do
-      before { expect(ENV).to receive(:[]).with('BOOKER_BUSINESS_SERVICE_URL').and_return 'http://from_env' }
+      before do
+        expect(ENV).to receive(:[]).with('BOOKER_CLIENT_ID')
+        expect(ENV).to receive(:[]).with('BOOKER_CLIENT_SECRET')
+        expect(ENV).to receive(:[]).with('BOOKER_BUSINESS_SERVICE_URL').and_return 'http://from_env'
+      end
 
       it 'sets the default value from env' do
         expect(subject.base_url).to eq 'http://from_env'
