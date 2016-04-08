@@ -16,7 +16,8 @@ module Booker
                     'LogoUrl',
                     'BusinessType',
                     'FirstName',
-                    'LastName'
+                    'LastName',
+                    'CurrencyCode'
     end
   end
 end
