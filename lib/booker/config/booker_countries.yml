@@ -14,7 +14,7 @@
   Australia: AU
   Austria: AT
   Azerbaijan: AZ
-  Azores: AP
+  Azores: PT
   Bahamas: BS
   Bahrain: BH
   Bangladesh: BD
@@ -38,7 +38,7 @@
   Burundi: BI
   Cambodia: KH
   Cameroon: CM
-  Canary Islands: IC
+  Canary Islands: ES
   Cape Verde: CV
   Cayman Islands: KY
   Central African Republic: CF
@@ -50,23 +50,23 @@
   Cocos (Keeling) Islands: CC
   Colombia: CO
   Comoros: KM
-  Congo (Democratic Republic of): ZP
+  Congo (Democratic Republic of): CD
   Cook Islands: CK
   Costa Rica: CR
   Cote D'Ivoire (Ivory Coast): CI
   Croatia: HR
-  Curacao: CB
+  Curacao: CW
   Cyprus: CY
   Czech Republic: CZ
   Denmark: DK
   Djibouti: DJ
   Dominica: DM
   Dominican Republic: DO
-  East Timor: TP
+  East Timor: TL
   Ecuador: EC
   Egypt: EG
   El Salvador: SV
-  United Kingdom: UK
+  United Kingdom: GB
   Equatorial Guinea: GQ
   Eritrea: ER
   Estonia: EE
@@ -111,7 +111,7 @@
   Kazakhstan: KZ
   Kenya: KE
   Kiribati: KI
-  Kosrae: KO
+  Kosrae: FM
   Kuwait: KW
   Kyrgyzstan: KG
   Laos: LA
@@ -150,8 +150,7 @@
   Nauru: NR
   Nepal: NP
   Netherlands: NL
-  Netherlands Antilles: AN
-  Neutral Zone: NT
+  Netherlands Antilles: NL
   New Caledonia: NC
   New Zealand (Aotearoa): NZ
   Nicaragua: NI
@@ -160,9 +159,9 @@
   Niue: NU
   Norfolk Island: NF
   North Korea: KP
-  Northern Ireland: NB
+  Northern Ireland: GB
   Northern Mariana Islands: MP
-  Norway: NO
+  Norway: "NO"
   Oman: OM
   Pakistan: PK
   Palau: PW
@@ -173,25 +172,25 @@
   Philippines: PH
   Pitcairn: PN
   Poland: PL
-  Ponape: PO
+  Ponape: FM
   Portugal: PT
-  Puerto Rico: PR
+  Puerto Rico: US
   Qatar: QA
   Reunion: RE
   Romania: RO
-  Rota: RT
+  Rota: MP
   Russian Federation: RU
   Rwanda: RW
   Saba: SS
   Saint Kitts and Nevis: KN
   Saint Lucia: LC
   Saint Vincent and the Grenadines: VC
-  Saipan: SP
+  Saipan: MP
   Samoa: WS
   San Marino: SM
   Sao Tome and Principe: ST
   Saudi Arabia: SA
-  Scotland: SF
+  Scotland: GB
   Senegal: SN
   Seychelles: SC
   Sierra Leone: SL
@@ -205,18 +204,18 @@
   South Korea: KR
   Spain: ES
   Sri Lanka: LK
-  St. Barthelemy: NT
-  St. Christopher: SW
+  St. Barthelemy: BL
+  St. Christopher: KN
   St. Croix: VI
-  St. Eustatius: EU
+  St. Eustatius: BQ
   St. Helena: SH
-  St. John: UV
+  St. John: VI
   St. Kitts and Nevis: KN
   St. Lucia: LC
-  St. Maarten: MB
-  St. Martin: TB
+  St. Maarten: SX
+  St. Martin: MF
   St. Pierre and Miquelon: PM
-  St. Thomas: VL
+  St. Thomas: VI
   St. Vincent/Grenadine: VC
   Sudan: SD
   Suriname: SR
@@ -225,18 +224,18 @@
   Sweden: SE
   Switzerland: CH
   Syria: SY
-  Tahiti: TA
+  Tahiti: PF
   Taiwan: TW
   Tajikistan: TJ
   Tanzania: TZ
   Thailand: TH
-  Tinian: TI
+  Tinian: MP
   Togo: TG
   Tokelau: TK
   Tonga: TO
   Tortola: TL
   Trinidad and Tobago: TT
-  Truk: TU
+  Truk: FM
   Tunisia: TN
   Turkey: TR
   Turkmenistan: TM
@@ -244,26 +243,26 @@
   Tuvalu: TV
   Uganda: UG
   Ukraine: UA
-  Union Island: UI
+  Union Island: VC
   United Arab Emirates: AE
   Uruguay: UY
   US Minor Outlying Islands: UM
-  USSR (former): SU
+  USSR (former): RU
   Uzbekistan: UZ
   Vanuatu: VU
   Vatican City State (Holy See): VA
   Venezuela: VE
   Vietnam: VN
-  Virgin Gorda: VR
+  Virgin Gorda: VG
   Virgin Islands (British): VG
   Virgin Islands (U.S.): VI
-  Wales: WL
+  Wales: GB
   Wallis and Futuna Islands: WF
   Western Samoa: WS
-  Yap: YA
+  Yap: FM
   Yemen: YE
-  Yugoslavia: YU
-  Zaire: ZR
+  Yugoslavia: ME
+  Zaire: CG
   Zambia: ZM
   Zimbabwe: ZW
   Serbia: RS

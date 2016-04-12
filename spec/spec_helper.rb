@@ -2,6 +2,7 @@ require 'rubygems'
 
 require 'shoulda/matchers'
 require 'booker_ruby'
+require 'carmen'
 
 Time.zone = 'UTC'
 
