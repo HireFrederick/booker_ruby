@@ -8,7 +8,12 @@ describe Booker::Models::Country do
 
     it 'sets constants to right vals' do
       expect(names_to_codes).to be_a Hash
-      expect(names_to_codes.length).to eq 268
+      expect(names_to_codes.length).to eq 267
+      names_to_codes.values.each do |country_code|
+        expect(country_code.class).to eq String
+        expect(country_code.length).to eq 2
+        expect(Carmen::Country.coded(country_code)).to_not eq nil
+      end
     end
   end
 
