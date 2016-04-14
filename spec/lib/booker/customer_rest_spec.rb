@@ -180,7 +180,7 @@ describe Booker::CustomerREST do
       'LocationID' => 10257,
       'StartDateTime' => '/Date(1438502400000)/',
       'EndDateTime' => '/Date(1438588799000)/',
-      'MaxTimesPerDay' => 1000,
+      'MaxTimesPerDay' => 100,
       'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
       'access_token' => 'access_token'
     }}
@@ -201,7 +201,7 @@ describe Booker::CustomerREST do
         'LocationID' => 10257,
         'StartDateTime' => '/Date(1438502400000)/',
         'EndDateTime' => '/Date(1438588799000)/',
-        'MaxTimesPerDay' => 1000,
+        'MaxTimesPerDay' => 100,
         'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
         'access_token' => 'access_token',
         'another_option' => 'foo'

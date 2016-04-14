@@ -35,7 +35,7 @@ module Booker
         'LocationID' => booker_location_id,
         'StartDateTime' => start_date_time,
         'EndDateTime' => end_date_time,
-        'MaxTimesPerDay' => 1000,
+        'MaxTimesPerDay' => 100,
         'Itineraries' => treatment_ids.map { |id| {'Treatments' => [{'TreatmentID' => id}]} }
       }, options), Booker::Models::MultiServiceAvailabilityResult
     end
