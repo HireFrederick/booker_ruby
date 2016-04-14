@@ -165,6 +165,54 @@ describe Booker::CustomerREST do
     end
   end
 
+  describe '#run_multi_service_availability' do
+    let(:options) {{}}
+    let(:result) do
+      client.run_multi_service_availability(
+        booker_location_id: 10257,
+        treatment_ids: [123],
+        start_date_time: Time.zone.parse('2015-08-02 00:00:00 -0400'),
+        end_date_time: Time.zone.parse('2015-08-02 23:59:59 -0400'),
+        options: options
+      )
+    end
+    let(:expected_params) {{
+      'LocationID' => 10257,
+      'StartDateTime' => '/Date(1438502400000)/',
+      'EndDateTime' => '/Date(1438588799000)/',
+      'MaxTimesPerDay' => 1000,
+      'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
+      'access_token' => 'access_token'
+    }}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:post).with('/availability/multiservice', expected_params, Booker::Models::MultiServiceAvailabilityResult).and_return([])
+    end
+
+    it 'delegates to post' do
+      expect(result).to eq []
+    end
+
+    context 'other options' do
+      let(:options) {{'another_option' => 'foo'}}
+
+      let(:expected_params) {{
+        'LocationID' => 10257,
+        'StartDateTime' => '/Date(1438502400000)/',
+        'EndDateTime' => '/Date(1438588799000)/',
+        'MaxTimesPerDay' => 1000,
+        'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
+        'access_token' => 'access_token',
+        'another_option' => 'foo'
+      }}
+
+      it 'adds other options passed in to the params' do
+        expect(result).to eq []
+      end
+    end
+  end
+
   describe '#run_class_availability' do
     let(:options) {{}}
     let(:result) { client.run_class_availability(
