@@ -70,6 +70,10 @@ require 'booker/models/class_instance'
 require 'booker/models/online_booking_settings'
 require 'booker/models/user'
 require 'booker/models/location_day_schedule'
+require 'booker/models/itinerary_time_slots_list'
+require 'booker/models/itinerary_time_slot'
+require 'booker/models/treatment_time_slot'
+require 'booker/models/multi_service_availability_result'
 
 # Base Client
 require 'booker/client'

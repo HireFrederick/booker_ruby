@@ -30,6 +30,16 @@ module Booker
           }, options), Booker::Models::SpaEmployeeAvailabilitySearchItem
     end
 
+    def run_multi_service_availability(booker_location_id:, treatment_ids:, start_date_time:, end_date_time:, options: {})
+      post '/availability/multiservice', build_params({
+        'LocationID' => booker_location_id,
+        'StartDateTime' => start_date_time,
+        'EndDateTime' => end_date_time,
+        'MaxTimesPerDay' => 100,
+        'Itineraries' => treatment_ids.map { |id| {'Treatments' => [{'TreatmentID' => id}]} }
+      }, options), Booker::Models::MultiServiceAvailabilityResult
+    end
+
     def run_class_availability(booker_location_id:, from_start_date_time:, to_start_date_time:, options: {})
       post '/availability/class', build_params({
           'FromStartDateTime' => from_start_date_time,
