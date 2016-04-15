@@ -70,7 +70,7 @@ module Booker
           '(GMT+07:00) Bangkok, Hanoi, Jakarta' => 'Bangkok',
           '(GMT+07:00) Krasnoyarsk' => 'Krasnoyarsk',
           '(GMT+08:00) Taipei' => 'Taipei',
-          '(GMT+08:00) Kuala Lumpur, Singapore' => 'Kuala',
+          '(GMT+08:00) Kuala Lumpur, Singapore' => 'Kuala Lumpur',
           '(GMT+08:00) Irkutsk, Ulaan Bataar' => 'Irkutsk',
           '(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi' => 'Beijing',
           '(GMT+08:00) Perth' => 'Perth',

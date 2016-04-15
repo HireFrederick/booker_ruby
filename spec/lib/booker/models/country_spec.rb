@@ -4,7 +4,7 @@ describe Booker::Models::Country do
   it { is_expected.to be_a(Booker::Models::Type) }
 
   describe 'constants' do
-    let(:names_to_codes) { described_class::NAMES_TO_CODES }
+    let(:names_to_codes) { described_class::NAMES_TO_ISO_CODES }
 
     it 'sets constants to right vals' do
       expect(names_to_codes).to be_a Hash
