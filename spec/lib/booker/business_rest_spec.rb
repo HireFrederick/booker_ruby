@@ -243,8 +243,8 @@ describe Booker::BusinessREST do
     let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         'access_token' => 'access_token',
         'LocationID' => booker_location_id,
-        'FromStartDate' => '/Date(1375053503000)/',
-        'ToStartDate' => '/Date(1469758256000)/'
+        'FromStartDate' => '/Date(1374984000000)/',
+        'ToStartDate' => '/Date(1469678400000)/'
       })}
 
     before do
@@ -259,20 +259,20 @@ describe Booker::BusinessREST do
     end
 
     it 'delegates to get_booker_resources' do
-      expect(client.find_appointments(booker_location_id: booker_location_id, start_at: from_start_date, end_at: to_start_date)).to eq []
+      expect(client.find_appointments(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date)).to eq []
     end
 
     context 'other options' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
           'access_token' => 'access_token',
           'LocationID' => booker_location_id,
-          'FromStartDate' => '/Date(1375053503000)/',
-          'ToStartDate' => '/Date(1469758256000)/',
+          'FromStartDate' => '/Date(1374984000000)/',
+          'ToStartDate' => '/Date(1469678400000)/',
           'another_option' => 'foo'
         })}
 
       it 'adds other options passed in to the params' do
-        expect(client.find_appointments(booker_location_id: booker_location_id, start_at: from_start_date, end_at: to_start_date, params: {'another_option' => 'foo'})).to eq []
+        expect(client.find_appointments(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date, params: {'another_option' => 'foo'})).to eq []
       end
     end
   end

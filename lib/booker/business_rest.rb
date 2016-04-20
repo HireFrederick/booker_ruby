@@ -70,11 +70,11 @@ module Booker
       )
     end
 
-    def find_appointments(booker_location_id:, start_at:, end_at:, fetch_all: true, params: {})
+    def find_appointments(booker_location_id:, start_date:, end_date:, fetch_all: true, params: {})
       additional_params = {
           'LocationID' => booker_location_id,
-          'FromStartDate' => start_at,
-          'ToStartDate' => end_at
+          'FromStartDate' => start_date.to_date,
+          'ToStartDate' => end_date.to_date
       }
 
       paginated_request(
