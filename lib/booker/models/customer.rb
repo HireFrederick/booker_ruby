@@ -7,13 +7,14 @@ module Booker
                     'AllowReceiveEmails',
                     'AllowReceiveSMS',
                     'SendEmail',
-                    'CellPhone',
+                    'CellPhone', # Returned when using FindCustomers
                     'CreditCard',
                     'Email',
                     'FirstName',
                     'HasActiveMembership',
                     'HomePhone',
-                    'MobilePhone',
+                    'MobilePhone', # Set this when making an appointment
+                    'MobilePhoneCarrierID',
                     'LastName',
                     'WorkPhone',
                     'WorkPhoneExt',

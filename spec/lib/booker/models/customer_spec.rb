@@ -14,6 +14,7 @@ describe Booker::Models::Customer do
       'HasActiveMembership',
       'HomePhone',
       'MobilePhone',
+      'MobilePhoneCarrierID',
       'LastName',
       'WorkPhone',
       'WorkPhoneExt',
