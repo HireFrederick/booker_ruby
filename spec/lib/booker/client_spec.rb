@@ -365,6 +365,7 @@ describe Booker::Client do
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
+          expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp).exactly(3).times.and_call_original
           expect{client.get_booker_resources(:get, path, params, body)}.to raise_error(Booker::Error)
         end
       end
@@ -420,7 +421,7 @@ describe Booker::Client do
         let(:resp) { {'error' => 'invalid_client'} }
 
         it 'raises Booker::Error' do
-          expect{client.handle_errors!('foo', resp)}.to raise_error(Booker::InvalidApiCredentials)
+          expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(Booker::InvalidApiCredentials)
         end
       end
 
@@ -431,7 +432,7 @@ describe Booker::Client do
           before { expect(client).to receive(:get_access_token).and_raise(StandardError) }
 
           it 'raises' do
-            expect{client.handle_errors!('foo', resp)}.to raise_error(StandardError)
+            expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(StandardError)
           end
         end
 
@@ -439,7 +440,7 @@ describe Booker::Client do
           before { expect(client).to receive(:get_access_token).and_return true }
 
           it 'sets credentials verified to true and returns nil' do
-            expect(client.handle_errors!('foo', resp)).to be nil
+            expect(client.handle_errors!('url', 'foo', resp)).to be nil
           end
         end
       end
@@ -448,8 +449,8 @@ describe Booker::Client do
         let(:resp) { {'error' => 'blah error'} }
 
         it 'raises Booker::Error' do
-          expect(Booker::Error).to receive(:new).with('foo', resp).and_call_original
-          expect{client.handle_errors!('foo', resp)}.to raise_error(Booker::Error)
+          expect(Booker::Error).to receive(:new).with(url: 'url', request: 'foo', response: resp).and_call_original
+          expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(Booker::Error)
         end
       end
     end
@@ -458,8 +459,8 @@ describe Booker::Client do
       before { expect(resp).to receive(:success?).and_return(false) }
 
       it 'raises Booker::Error' do
-        expect(Booker::Error).to receive(:new).with('foo', resp).and_call_original
-        expect{client.handle_errors!('foo', resp)}.to raise_error(Booker::Error)
+        expect(Booker::Error).to receive(:new).with(url: 'url', request: 'foo', response: resp).and_call_original
+        expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(Booker::Error)
       end
     end
 
@@ -467,7 +468,7 @@ describe Booker::Client do
       before { expect(resp).to receive(:success?).and_return(true) }
 
       it 'returns the resp' do
-        expect(client.handle_errors!('foo', resp))
+        expect(client.handle_errors!('url', 'foo', resp))
       end
     end
   end
@@ -546,12 +547,12 @@ describe Booker::Client do
       let(:block_method) { :to_i }
       let(:request) { 'request' }
       let(:response) { '' }
-      let(:exception) { Booker::Error.new(request, response) }
+      let(:exception) { Booker::Error.new(url: 'url', request: request, response: response) }
 
       before { expect(block_string).to receive(block_method).and_raise(exception) }
 
       context 'response not present' do
-        before { expect(Booker::InvalidApiCredentials).to receive(:new).with(request, nil).and_call_original }
+        before { expect(Booker::InvalidApiCredentials).to receive(:new).with(url: 'url', request: request, response: nil).and_call_original }
 
         it 'raises InvalidApiCredentials' do
           expect{

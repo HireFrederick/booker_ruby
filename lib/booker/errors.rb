@@ -1,8 +1,8 @@
 module Booker
   class Error < StandardError
-    attr_accessor :error, :description, :request, :response
+    attr_accessor :error, :description, :url, :request, :response
 
-    def initialize(request = nil, response = nil)
+    def initialize(url: nil, request: nil, response: nil)
       if request.present?
         self.request = request
       end
@@ -12,6 +12,8 @@ module Booker
         self.error = response['error'] || response['ErrorMessage']
         self.description = response['error_description']
       end
+
+      self.url = url
     end
   end
 

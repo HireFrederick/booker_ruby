@@ -82,7 +82,7 @@ module Booker
 
       # Allow it to retry the first time unless it is an authorization error
       begin
-        booker_resources = handle_errors!(http_options, HTTParty.send(http_method, url, http_options))
+        booker_resources = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
       rescue Booker::Error, Net::ReadTimeout => ex
         if ex.is_a? Booker::InvalidApiCredentials
           raise ex
@@ -93,9 +93,9 @@ module Booker
       end
 
       return results_from_response(booker_resources, booker_model) if booker_resources.present?
-      booker_resources = handle_errors!(http_options, HTTParty.send(http_method, url, http_options))
+      booker_resources = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
       return results_from_response(booker_resources, booker_model) if booker_resources.present?
-      raise Booker::Error.new(http_options, booker_resources)
+      raise Booker::Error.new(url: url, request: http_options, response: booker_resources)
     end
 
     def full_url(path)
@@ -103,14 +103,14 @@ module Booker
       uri.scheme ? path : "#{self.base_url}#{path}"
     end
 
-    def handle_errors!(request, response)
+    def handle_errors!(url, request, response)
       puts "BOOKER RESPONSE: #{response}" if ENV['BOOKER_API_DEBUG'] == 'true'
 
-      ex = Booker::Error.new(request, response)
+      ex = Booker::Error.new(url: url, request: request, response: response)
       if ex.error.present? || !response.success?
         case ex.error
           when 'invalid_client'
-            raise Booker::InvalidApiCredentials.new(request, response)
+            raise Booker::InvalidApiCredentials.new(url: url, request: request, response: response)
           when 'invalid access token'
             get_access_token
             return nil
@@ -157,7 +157,7 @@ module Booker
       if (response = ex.response).present?
         raise ex
       else
-        raise Booker::InvalidApiCredentials.new(ex.request, response)
+        raise Booker::InvalidApiCredentials.new(url: ex.url, request: ex.request, response: response)
       end
     end
 
