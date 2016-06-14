@@ -330,4 +330,47 @@ describe Booker::BusinessREST do
       expect(result).to eq 'response'
     end
   end
+
+  describe '#get_location_notification_settings' do
+    let(:result) { client.get_location_notification_settings(booker_location_id: 10257) }
+    let(:expected_params) {{
+      'access_token' => 'access_token'
+    }}
+    let(:response) {{
+      'NotificationSettings' => {
+        'SendNoticeHoursBeforeAppointment' => 48
+      }
+    }}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:get).with('/location/10257/notification_settings', expected_params).and_return(response)
+    end
+
+    it 'delegates to get and returns' do
+      expect(result).to be_a Booker::Models::NotificationSettings
+      expect(result.SendNoticeHoursBeforeAppointment).to be 48
+    end
+  end
+
+  describe '#update_location_notification_settings' do
+    let(:send_appointment_reminders) { 'foo' }
+    let(:result) { client.update_location_notification_settings(booker_location_id: 10257, send_appointment_reminders: send_appointment_reminders) }
+    let(:expected_params) {{
+      'access_token' => 'access_token',
+      NotificationSettings: { SendAppointmentReminders: send_appointment_reminders }
+    }}
+    let(:response) {{
+      'IsSuccess' => true
+    }}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:put).with('/location/10257/notification_settings', expected_params).and_return(response)
+    end
+
+    it 'delegates to get and returns' do
+      expect(result).to be response
+    end
+  end
 end
