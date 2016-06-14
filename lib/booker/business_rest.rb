@@ -98,7 +98,7 @@ module Booker
 
     def get_location_notification_settings(booker_location_id:)
       response = get "/location/#{booker_location_id}/notification_settings", build_params
-      Booker::Models::NotificationSettings.from_hash(response['NotificationSettings'])
+      Booker::Models::NotificationSettings.from_hash response['NotificationSettings']
     end
 
     def update_location_notification_settings(booker_location_id:, send_appointment_reminders:)
@@ -107,6 +107,11 @@ module Booker
           SendAppointmentReminders: send_appointment_reminders
         }
       })
+    end
+
+    def get_location_feature_settings(booker_location_id:)
+      response = get "/location/#{booker_location_id}/feature_settings", build_params
+      Booker::Models::FeatureSettings.from_hash response['FeatureSettings']
     end
   end
 end

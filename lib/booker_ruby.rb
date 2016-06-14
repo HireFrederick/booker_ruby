@@ -75,6 +75,7 @@ require 'booker/models/itinerary_time_slot'
 require 'booker/models/treatment_time_slot'
 require 'booker/models/multi_service_availability_result'
 require 'booker/models/notification_settings'
+require 'booker/models/feature_settings'
 
 # Base Client
 require 'booker/client'

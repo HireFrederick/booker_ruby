@@ -373,4 +373,26 @@ describe Booker::BusinessREST do
       expect(result).to be response
     end
   end
+
+  describe '#get_location_feature_settings' do
+    let(:result) { client.get_location_feature_settings(booker_location_id: 10257) }
+    let(:expected_params) {{
+      'access_token' => 'access_token'
+    }}
+    let(:response) {{
+      'FeatureSettings' => {
+        'UseFrederick' => true
+      }
+    }}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:get).with('/location/10257/feature_settings', expected_params).and_return(response)
+    end
+
+    it 'delegates to get and returns' do
+      expect(result).to be_a Booker::Models::FeatureSettings
+      expect(result.UseFrederick).to be true
+    end
+  end
 end
