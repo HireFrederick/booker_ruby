@@ -10,11 +10,6 @@ module Booker
       result
     end
 
-    def get_location(booker_location_id:)
-      response = get("/location/#{booker_location_id}", build_params)
-      Booker::Models::Location.from_hash(response)
-    end
-
     def get_location_day_schedules(booker_location_id:, params: {})
       # Booker requires fromDate and toDate for JSON API, but does not use them when getDefaultDaySchedule is true
       # So datetime used for these fields does not matter

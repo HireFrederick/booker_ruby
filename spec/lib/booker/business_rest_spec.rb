@@ -31,26 +31,6 @@ describe Booker::BusinessREST do
     end
   end
 
-  describe '#get_location' do
-    let(:result) { client.get_location(booker_location_id: booker_location_id) }
-    let(:expected_params) {{
-      'access_token' => 'access_token'
-    }}
-    let(:response) {{
-      'ID' => booker_location_id
-    }}
-
-    before do
-      expect(client).to receive(:access_token).and_return 'access_token'
-      expect(client).to receive(:get).with("/location/#{booker_location_id}", expected_params).and_return(response)
-    end
-
-    it 'delegates to get and returns' do
-      expect(result).to be_a Booker::Models::Location
-      expect(result.ID).to be booker_location_id
-    end
-  end
-
   describe '#get_location_day_schedules' do
     let(:result) { client.get_location_day_schedules(booker_location_id: booker_location_id) }
     let(:access_token) { 'access_token' }

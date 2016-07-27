@@ -15,6 +15,11 @@ module Booker
       put '/appointment/confirm', build_params('ID' => appointment_id), Booker::Models::Appointment
     end
 
+    def get_location(booker_location_id:)
+      response = get("/location/#{booker_location_id}", build_params)
+      Booker::Models::Location.from_hash(response)
+    end
+
     private
 
       def build_params(default_params={}, overrides={}, paginated=false)

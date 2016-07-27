@@ -48,4 +48,25 @@ describe Booker::CommonREST do
       expect(result).to eq response
     end
   end
+
+  describe '#get_location' do
+    let(:booker_location_id) { 123 }
+    let(:result) { client.get_location(booker_location_id: booker_location_id) }
+    let(:expected_params) {{
+      'access_token' => 'access_token'
+    }}
+    let(:response) {{
+      'ID' => booker_location_id
+    }}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:get).with("/location/#{booker_location_id}", expected_params).and_return(response)
+    end
+
+    it 'delegates to get and returns' do
+      expect(result).to be_a Booker::Models::Location
+      expect(result.ID).to be booker_location_id
+    end
+  end
 end
