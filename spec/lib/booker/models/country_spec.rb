@@ -17,10 +17,10 @@ describe Booker::Models::Country do
   end
 
   describe '#country_code' do
-    let(:country_id) { 244 }
+    let(:country_id) { 69 }
 
     subject { described_class.new('ID' => country_id) }
 
-    it('returns right country code for name') { expect(subject.country_code).to eq 'TC' }
+    it('returns right country code for name') { expect(subject.country_code).to eq 'GB' }
   end
 end

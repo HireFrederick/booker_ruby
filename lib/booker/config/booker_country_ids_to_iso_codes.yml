@@ -66,7 +66,7 @@
   66: 'EC'
   67: 'EG'
   68: 'SV'
-  69: 'UK'
+  69: 'GB' # Must be GB not UK!!!
   70: 'GQ'
   71: 'ER'
   72: 'EE'
