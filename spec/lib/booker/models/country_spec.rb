@@ -23,4 +23,22 @@ describe Booker::Models::Country do
 
     it('returns right country code for name') { expect(subject.country_code).to eq 'GB' }
   end
+
+  describe '.from_country_code' do
+    let(:country_code) { 'GB' }
+    let(:result) { described_class.from_country_code('GB') }
+
+    it 'returns country' do
+      expect(result).to be_a(described_class)
+      expect(result.ID).to be 69
+    end
+
+    context 'code not found' do
+      let(:result) { described_class.from_country_code('FOO') }
+
+      it 'raises ArgumentError' do
+        expect{result}.to raise_error ArgumentError, 'Country code not recognized'
+      end
+    end
+  end
 end

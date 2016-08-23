@@ -34,8 +34,8 @@ describe Booker::BusinessREST do
   describe '#get_location_day_schedules' do
     let(:result) { client.get_location_day_schedules(booker_location_id: booker_location_id) }
     let(:access_token) { 'access_token' }
-    let(:now) { Time.parse('2014-01-01') }
-    let(:random_datetime) { Booker::Models::Model.time_to_booker_datetime(now) }
+    let(:now) { Time.zone.parse('2014-01-01') }
+    let(:random_datetime) { Booker::Models::Model.time_to_booker_datetime(Time.zone.now) }
     let(:additional_params) do
       {
           'getDefaultDaySchedule' => true,
