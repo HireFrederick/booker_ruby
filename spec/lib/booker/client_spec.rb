@@ -103,7 +103,7 @@ describe Booker::Client do
       {
           headers: {"Content-Type"=>"application/json; charset=utf-8"},
           query: data,
-          timeout: 120
+          open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
@@ -129,7 +129,7 @@ describe Booker::Client do
       {
           headers: {"Content-Type"=>"application/json; charset=utf-8"},
           body: post_data.to_json,
-          timeout: 120
+          open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
@@ -156,7 +156,7 @@ describe Booker::Client do
       {
         headers: {"Content-Type"=>"application/json; charset=utf-8"},
         body: post_data.to_json,
-        timeout: 120
+        open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
@@ -290,7 +290,7 @@ describe Booker::Client do
           headers: {'Content-Type' => 'application/json; charset=utf-8'},
           body: body,
           query: params,
-          timeout: 120
+          open_timeout: 120
       }
     end
     let(:path) { '/blah/blah' }
@@ -329,6 +329,7 @@ describe Booker::Client do
       it 'returns the full resp' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
+        expect(resp).to receive(:parsed_response).and_return resp
         expect(client.get_booker_resources(:get, path, params, body)).to eq resp
       end
     end
@@ -353,6 +354,7 @@ describe Booker::Client do
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
+          expect(resp2).to receive(:parsed_response).and_return resp2
           expect(client.get_booker_resources(:get, path, params, body)).to eq resp2
         end
       end

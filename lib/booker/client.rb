@@ -171,7 +171,7 @@ module Booker
           headers: {
             'Content-Type' => 'application/json; charset=utf-8'
           },
-          timeout: 120
+          open_timeout: 120
         }
 
         options[:body] = body if body.present?
@@ -206,7 +206,7 @@ module Booker
           return response[pluralized] unless response[pluralized].nil?
         end
 
-        response
+        response.parsed_response if response
       end
   end
 end

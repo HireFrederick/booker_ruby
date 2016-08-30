@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.files       = Dir['{lib}/**/*', 'MIT-LICENSE', 'README.rdoc']
 
-  s.add_dependency 'httparty', '~> 0.13.1'
+  s.add_dependency 'httparty', '~> 0.14'
   s.add_dependency 'activesupport', '>= 3.0.0'
   s.add_dependency 'oj', '~> 2.10'
 
