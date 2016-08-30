@@ -162,7 +162,7 @@ module Booker
     end
 
     def access_token_response(http_options)
-      send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil).parsed_response
+      send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
     end
 
     private

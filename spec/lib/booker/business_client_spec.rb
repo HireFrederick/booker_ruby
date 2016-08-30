@@ -107,8 +107,7 @@ describe Booker::BusinessClient do
 
     context 'response present' do
       before do
-        expect(client).to receive(:post).with('/accountlogin', http_options, nil).and_return(true)
-        expect(true).to receive(:parsed_response).with(no_args).and_return(response)
+        expect(client).to receive(:post).with('/accountlogin', http_options, nil).and_return(response)
         expect(client).to receive(:update_token_store).with(no_args)
       end
 

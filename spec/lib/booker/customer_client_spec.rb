@@ -108,8 +108,7 @@ describe Booker::CustomerClient do
 
     context 'response present' do
       before do
-        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(true)
-        expect(true).to receive(:parsed_response).with(no_args).and_return(response)
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
         expect(client).to receive(:update_token_store).with(no_args)
       end
 

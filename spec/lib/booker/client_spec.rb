@@ -491,7 +491,7 @@ describe Booker::Client do
     let(:expires_in) { 100 }
     let(:expires_at) { now + expires_in }
     let(:access_token) { 'access_token' }
-    let(:parsed_response) do
+    let(:response) do
       {
           'expires_in' => expires_in.to_s,
           'access_token' => access_token
@@ -505,7 +505,6 @@ describe Booker::Client do
       before do
         expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args).and_call_original
         expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
-        expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
         expect(client).to receive(:update_token_store).with(no_args)
       end
 
@@ -614,15 +613,12 @@ describe Booker::Client do
   end
 
   describe '#access_token_response' do
-    let(:parsed_response) { 'parsed_response' }
-
-    after { expect(client.access_token_response(http_options)).to eq parsed_response }
+    after { expect(client.access_token_response(http_options)).to eq response }
 
     it 'calls the token store' do
       expect(client).to receive(described_class::ACCESS_TOKEN_HTTP_METHOD)
                             .with(described_class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
                             .and_return(response)
-      expect(response).to receive(:parsed_response).with(no_args).and_return(parsed_response)
     end
   end
 
