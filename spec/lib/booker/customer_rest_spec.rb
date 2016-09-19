@@ -181,7 +181,7 @@ describe Booker::CustomerREST do
       'StartDateTime' => '/Date(1438502400000)/',
       'EndDateTime' => '/Date(1438588799000)/',
       'MaxTimesPerDay' => 100,
-      'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
+      'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
       'access_token' => 'access_token'
     }}
 
@@ -194,6 +194,31 @@ describe Booker::CustomerREST do
       expect(result).to eq []
     end
 
+    context 'with employee_id' do
+      let(:result) do
+        client.run_multi_service_availability(
+            booker_location_id: 10257,
+            treatment_ids: [123],
+            start_date_time: Time.zone.parse('2015-08-02 00:00:00 -0400'),
+            end_date_time: Time.zone.parse('2015-08-02 23:59:59 -0400'),
+            options: options,
+            employee_id: 1234
+        )
+      end
+      let(:expected_params) {{
+          'LocationID' => 10257,
+          'StartDateTime' => '/Date(1438502400000)/',
+          'EndDateTime' => '/Date(1438588799000)/',
+          'MaxTimesPerDay' => 100,
+          'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => 1234}]}],
+          'access_token' => 'access_token'
+      }}
+
+      it 'delegates to post' do
+        expect(result).to eq []
+      end
+    end
+
     context 'other options' do
       let(:options) {{'another_option' => 'foo'}}
 
@@ -202,7 +227,7 @@ describe Booker::CustomerREST do
         'StartDateTime' => '/Date(1438502400000)/',
         'EndDateTime' => '/Date(1438588799000)/',
         'MaxTimesPerDay' => 100,
-        'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123}]}],
+        'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
         'access_token' => 'access_token',
         'another_option' => 'foo'
       }}
