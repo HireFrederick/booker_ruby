@@ -19,7 +19,8 @@ describe Booker::Models::Location do
       'BusinessType',
       'FirstName',
       'LastName',
-      'CurrencyCode'
+      'CurrencyCode',
+      'Status'
     ].each do |attr|
       expect(subject).to respond_to(attr)
       expect(subject).to respond_to("#{attr}=")

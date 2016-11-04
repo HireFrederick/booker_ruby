@@ -17,7 +17,8 @@ module Booker
                     'BusinessType',
                     'FirstName',
                     'LastName',
-                    'CurrencyCode'
+                    'CurrencyCode',
+                    'Status'
     end
   end
 end
