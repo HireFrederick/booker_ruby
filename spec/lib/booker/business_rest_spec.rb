@@ -257,6 +257,46 @@ describe Booker::BusinessREST do
     end
   end
 
+  describe '#find_appointments_partial' do
+    let(:from_start_date) { Time.zone.at(1375039103) }
+    let(:to_start_date) { Time.zone.at(1469743856) }
+    let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+      'access_token' => 'access_token',
+      'LocationID' => booker_location_id,
+      'FromStartDate' => '/Date(1374984000000)/',
+      'ToStartDate' => '/Date(1469678400000)/'
+    })}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:paginated_request).with(
+        method: :post,
+        path: '/appointments/partial',
+        params: expected_params,
+        model: Booker::Models::Appointment,
+        fetch_all: true
+      ).and_return([])
+    end
+
+    it 'delegates to get_booker_resources' do
+      expect(client.find_appointments_partial(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date)).to eq []
+    end
+
+    context 'other options' do
+      let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+        'access_token' => 'access_token',
+        'LocationID' => booker_location_id,
+        'FromStartDate' => '/Date(1374984000000)/',
+        'ToStartDate' => '/Date(1469678400000)/',
+        'another_option' => 'foo'
+      })}
+
+      it 'adds other options passed in to the params' do
+        expect(client.find_appointments_partial(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date, params: {'another_option' => 'foo'})).to eq []
+      end
+    end
+  end
+
   describe '#create_special' do
     let(:start_date) { Time.zone.at(1438660800) }
     let(:end_date) { Time.zone.at(1438747199) }

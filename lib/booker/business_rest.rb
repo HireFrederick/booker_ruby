@@ -81,6 +81,22 @@ module Booker
       )
     end
 
+    def find_appointments_partial(booker_location_id:, start_date:, end_date:, fetch_all: true, params: {})
+      additional_params = {
+        'LocationID' => booker_location_id,
+        'FromStartDate' => start_date.to_date,
+        'ToStartDate' => end_date.to_date
+      }
+
+      paginated_request(
+        method: :post,
+        path: '/appointments/partial',
+        params: build_params(additional_params, params, true),
+        model: Booker::Models::Appointment,
+        fetch_all: fetch_all
+      )
+    end
+
     def create_special(booker_location_id:, start_date:, end_date:, coupon_code:, name:, params: {})
       post('/special', build_params({
             'LocationID' => booker_location_id,
