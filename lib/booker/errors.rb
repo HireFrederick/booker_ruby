@@ -9,8 +9,10 @@ module Booker
 
       if response.present?
         self.response = response
-        self.error = response['error'] || response['ErrorMessage']
-        self.description = response['error_description']
+        if response.parsed_response.is_a?(Hash)
+          self.error = response.parsed_response['error'] || response.parsed_response['ErrorMessage']
+          self.description = response.parsed_response['error_description']
+        end
       end
 
       self.url = url
@@ -18,4 +20,6 @@ module Booker
   end
 
   class InvalidApiCredentials < Error; end
+  class ServiceUnavailable < Error; end
+  class RateLimitExceeded < Error; end
 end

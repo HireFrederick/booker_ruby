@@ -31,7 +31,7 @@ describe Booker::Client do
     it 'sets constants to right vals' do
       expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :get
       expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/access_token'
-      expect(described_class::TimeZone).to eq 'Eastern Time (US & Canada)'
+      expect(described_class::BOOKER_SERVER_TIMEZONE).to eq 'Eastern Time (US & Canada)'
     end
   end
 
@@ -101,20 +101,20 @@ describe Booker::Client do
   describe '#get' do
     let(:http_party_options) {
       {
-          headers: {"Content-Type"=>"application/json; charset=utf-8"},
+          headers: {'Content-Type':"application/json; charset=utf-8"},
           query: data,
           open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { {'Results' => [data]} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
 
     it 'makes the request using the options given' do
-      expect(client).to receive(:get_booker_resources).with(:get, '/blah/blah', data, nil, Booker::Models::Model).and_call_original
+      expect(client).to receive(:get_booker_resources).with(:get, '/blah/blah', data, nil, Booker::V4::Models::Model).and_call_original
       expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
       expect(resp).to receive(:success?).and_return(true)
-      expect(Booker::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
-      expect(client.get('/blah/blah', data, Booker::Models::Model)).to eq ['results']
+      expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
+      expect(client.get('/blah/blah', data, Booker::V4::Models::Model)).to eq ['results']
     end
 
     it 'allows you to not pass in a booker model' do
@@ -127,21 +127,21 @@ describe Booker::Client do
   describe '#post' do
     let(:http_party_options) {
       {
-          headers: {"Content-Type"=>"application/json; charset=utf-8"},
+          headers: {'Content-Type':"application/json; charset=utf-8"},
           body: post_data.to_json,
           open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { {'Results' => [data]} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
     let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
 
     it 'makes the request using the options given' do
-      expect(client).to receive(:get_booker_resources).with(:post, '/blah/blah', nil, post_data.to_json, Booker::Models::Model).and_call_original
+      expect(client).to receive(:get_booker_resources).with(:post, '/blah/blah', nil, post_data.to_json, Booker::V4::Models::Model).and_call_original
       expect(HTTParty).to receive(:post).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
       expect(resp).to receive(:success?).and_return(true)
-      expect(Booker::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
-      expect(client.post('/blah/blah', post_data, Booker::Models::Model)).to eq ['results']
+      expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
+      expect(client.post('/blah/blah', post_data, Booker::V4::Models::Model)).to eq ['results']
     end
 
     it 'allows you to not pass in a booker model' do
@@ -154,21 +154,21 @@ describe Booker::Client do
   describe '#put' do
     let(:http_party_options) {
       {
-        headers: {"Content-Type"=>"application/json; charset=utf-8"},
+        headers: {'Content-Type':"application/json; charset=utf-8"},
         body: post_data.to_json,
         open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { {'Results' => [data]} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
     let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
 
     it 'makes the request using the options given' do
-      expect(client).to receive(:get_booker_resources).with(:put, '/blah/blah', nil, post_data.to_json, Booker::Models::Model).and_call_original
+      expect(client).to receive(:get_booker_resources).with(:put, '/blah/blah', nil, post_data.to_json, Booker::V4::Models::Model).and_call_original
       expect(HTTParty).to receive(:put).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
       expect(resp).to receive(:success?).and_return(true)
-      expect(Booker::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
-      expect(client.put('/blah/blah', post_data, Booker::Models::Model)).to eq ['results']
+      expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
+      expect(client.put('/blah/blah', post_data, Booker::V4::Models::Model)).to eq ['results']
     end
 
     it 'allows you to not pass in a booker model' do
@@ -190,27 +190,27 @@ describe Booker::Client do
         }
       end
       let(:results) { [result_1, result_2, result_3] }
-      let(:result_1) { Booker::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
-      let(:result_2) { Booker::Models::Customer.new(LocationID: 456) }
-      let(:result_3) { Booker::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
-      let(:base_paginated_request_args) { {method: 'method', path: path, params: params_1, model: Booker::Models::Model} }
+      let(:result_1) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
+      let(:result_2) { Booker::V4::Models::Customer.new(LocationID: 456) }
+      let(:result_3) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
+      let(:base_paginated_request_args) { {method: 'method', path: path, params: params_1, model: Booker::V4::Models::Model} }
       let(:paginated_request_args) { base_paginated_request_args }
 
-      before { expect(client).to receive(:send).with('method', path, params_1, Booker::Models::Model).and_return(results) }
+      before { expect(client).to receive(:send).with('method', path, params_1, Booker::V4::Models::Model).and_return(results) }
 
       context 'fetch all is true' do
         let(:params_2) { params_1.merge('PageNumber' => (params_1['PageNumber'] + 1)) }
         let(:params_3) { params_1.merge('PageNumber' => (params_1['PageNumber'] + 2)) }
-        let(:result_4) { Booker::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
-        let(:result_5) { Booker::Models::Customer.new(LocationID: 123, FirstName: 'John') }
+        let(:result_4) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
+        let(:result_5) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'John') }
         let(:total_missing) { params_2['PageSize'] - results2.length }
         let(:raven_msg) { "Page of #{path} has less records then specified in page size. Ensure this is not last page of request" }
         let(:results2) { [result_4, result_5] }
         let(:results3) { [] }
 
         before do
-          expect(client).to receive(:send).with('method', path, params_2, Booker::Models::Model).and_return(results2)
-          expect(client).to receive(:send).with('method', path, params_3, Booker::Models::Model).and_return(results3)
+          expect(client).to receive(:send).with('method', path, params_2, Booker::V4::Models::Model).and_return(results2)
+          expect(client).to receive(:send).with('method', path, params_3, Booker::V4::Models::Model).and_return(results3)
         end
 
         it 'calls the request method for each page, returning the combined result set' do
@@ -238,7 +238,7 @@ describe Booker::Client do
               'UsePaging' => val,
               'PageSize' => page_size,
               'PageNumber' => page_number
-            }, model: Booker::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
+            }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
 
@@ -248,7 +248,7 @@ describe Booker::Client do
               'UsePaging' => use_paging,
               'PageSize' => val,
               'PageNumber' => page_number
-            }, model: Booker::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
+            }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
 
@@ -258,7 +258,7 @@ describe Booker::Client do
               'UsePaging' => use_paging,
               'PageSize' => page_size,
               'PageNumber' => val
-            }, model: Booker::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
+            }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
     end
@@ -271,23 +271,24 @@ describe Booker::Client do
       }}
 
       before do
-        expect(client).to receive(:send).with('method', path, params, Booker::Models::Model).and_return('foo')
+        expect(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return('foo')
       end
 
       it 'raises error' do
-        expect{client.paginated_request(method: 'method', path: path, params: params, model: Booker::Models::Model)}.to raise_error(StandardError, "Result from paginated request to #{path} with params: {\"UsePaging\"=>true, \"PageSize\"=>2, \"PageNumber\"=>1} is not a collection")
+        expect{client.paginated_request(method: 'method', path: path, params: params, model: Booker::V4::Models::Model)}.to raise_error(StandardError, "Result from paginated request to #{path} with params: {\"UsePaging\"=>true, \"PageSize\"=>2, \"PageNumber\"=>1} is not a collection")
       end
     end
   end
 
   describe '#get_booker_resources' do
     let(:data) { {data: 'datum'} }
-    let(:resp) { {'Results' => [data]} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:parsed_response) { {'Results' => [data]} }
     let(:params) { {foo: 'bar'} }
     let(:body) { {bar: 'foo'} }
     let(:http_party_options) do
       {
-          headers: {'Content-Type' => 'application/json; charset=utf-8'},
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
           body: body,
           query: params,
           open_timeout: 120
@@ -304,39 +305,39 @@ describe Booker::Client do
     end
 
     context 'model passed in and no Results' do
-      let(:resp) { {'Treatments' => [data]} }
+      let(:parsed_response) { {'Treatments' => [data]} }
 
       it 'returns the services if they are present and results is not' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
-        expect(client.get_booker_resources(:get, path, params, body, Booker::Models::Treatment)).to eq [data]
+        expect(client.get_booker_resources(:get, path, params, body, Booker::V4::Models::Treatment)).to eq [data]
       end
 
       context 'singular response' do
-        let(:resp) { {'Treatment' => data } }
+        let(:parsed_response) { {'Treatment' => data } }
 
         it 'returns the data' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
-          expect(client.get_booker_resources(:get, path, params, body, Booker::Models::Treatment)).to eq data
+          expect(client.get_booker_resources(:get, path, params, body, Booker::V4::Models::Treatment)).to eq data
         end
       end
     end
 
     context 'no Results' do
-      let(:resp) { {'Foo' => []} }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+      let(:parsed_response) { {'Foo' => []} }
 
-      it 'returns the full resp' do
+      it 'returns the parsed response' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
-        expect(resp).to receive(:parsed_response).and_return resp
-        expect(client.get_booker_resources(:get, path, params, body)).to eq resp
+        expect(client.get_booker_resources(:get, path, params, body)).to eq parsed_response
       end
     end
 
     context 'response not present on first request' do
-      let(:resp) { {} }
-      let(:resp2) { {'Results' => [data]} }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: {}) }
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
 
       it 'makes another request, returns results' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
@@ -347,27 +348,27 @@ describe Booker::Client do
       end
 
       context 'no Results' do
-        let(:resp2) { {'foo' => []} }
+        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => []}) }
 
-        it 'returns the full resp' do
+        it 'returns the parsed response' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
-          expect(resp2).to receive(:parsed_response).and_return resp2
-          expect(client.get_booker_resources(:get, path, params, body)).to eq resp2
+          expect(client.get_booker_resources(:get, path, params, body)).to eq []
         end
       end
 
       context 'no response on second request' do
-        let(:resp2) { {} }
+        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {}) }
 
         it 'raises Booker::Error' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
-          expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp).exactly(3).times.and_call_original
+          expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp).and_call_original
+          expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp2).twice.and_call_original
           expect{client.get_booker_resources(:get, path, params, body)}.to raise_error(Booker::Error)
         end
       end
@@ -414,13 +415,12 @@ describe Booker::Client do
   end
 
   describe '#handle_errors!' do
-    let(:resp) { {} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:parsed_response) { {} }
 
     context 'booker error present' do
-      before { expect(resp).to_not receive(:handle_errors) }
-
       context 'invalid_client' do
-        let(:resp) { {'error' => 'invalid_client'} }
+        let(:parsed_response) { {'error' => 'invalid_client'} }
 
         it 'raises Booker::Error' do
           expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(Booker::InvalidApiCredentials)
@@ -428,7 +428,7 @@ describe Booker::Client do
       end
 
       context 'invalid access token' do
-        let(:resp) { {'error' => 'invalid access token'} }
+        let(:parsed_response) { {'error' => 'invalid access token'} }
 
         context 'get_access_token_data raises error' do
           before { expect(client).to receive(:get_access_token).and_raise(StandardError) }
@@ -448,7 +448,7 @@ describe Booker::Client do
       end
 
       context 'no error match' do
-        let(:resp) { {'error' => 'blah error'} }
+        let(:parsed_response) { {'error' => 'blah error'} }
 
         it 'raises Booker::Error' do
           expect(Booker::Error).to receive(:new).with(url: 'url', request: 'foo', response: resp).and_call_original
@@ -491,10 +491,11 @@ describe Booker::Client do
     let(:expires_in) { 100 }
     let(:expires_at) { now + expires_in }
     let(:access_token) { 'access_token' }
-    let(:response) do
+    let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:parsed_response) do
       {
-          'expires_in' => expires_in.to_s,
-          'access_token' => access_token
+        'expires_in' => expires_in.to_s,
+        'access_token' => access_token
 
       }
     end
@@ -547,13 +548,14 @@ describe Booker::Client do
     context 'block code raises error' do
       let(:block_method) { :to_i }
       let(:request) { 'request' }
-      let(:response) { '' }
+      let(:response) { instance_double(HTTParty::Response, parsed_response: '') }
       let(:exception) { Booker::Error.new(url: 'url', request: request, response: response) }
 
       before { expect(block_string).to receive(block_method).and_raise(exception) }
 
       context 'response not present' do
-        before { expect(Booker::InvalidApiCredentials).to receive(:new).with(url: 'url', request: request, response: nil).and_call_original }
+        before { expect(Booker::InvalidApiCredentials).to receive(:new)
+          .with(url: 'url', request: request, response: response).and_call_original }
 
         it 'raises InvalidApiCredentials' do
           expect{
@@ -563,7 +565,7 @@ describe Booker::Client do
       end
 
       context 'response present' do
-        let(:response) { 'response' }
+        let(:response) { instance_double(HTTParty::Response, parsed_response: 'response') }
 
         before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
 

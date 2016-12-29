@@ -5,7 +5,8 @@ module Booker
 
     ACCESS_TOKEN_HTTP_METHOD = :get
     ACCESS_TOKEN_ENDPOINT = '/access_token'.freeze
-    TimeZone = 'Eastern Time (US & Canada)'.freeze
+    BOOKER_SERVER_TIMEZONE = 'Eastern Time (US & Canada)'.freeze
+    DEFAULT_CONTENT_TYPE = 'application/json; charset=utf-8'.freeze
 
     def initialize(options = {})
       options.each { |key, value| send(:"#{key}=", value) }
@@ -82,20 +83,28 @@ module Booker
 
       # Allow it to retry the first time unless it is an authorization error
       begin
-        booker_resources = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
+        response = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
       rescue Booker::Error, Net::ReadTimeout => ex
         if ex.is_a? Booker::InvalidApiCredentials
           raise ex
         else
           sleep 1
-          booker_resources = nil
+          response = nil # Force a retry (see logic below)
         end
       end
 
-      return results_from_response(booker_resources, booker_model) if booker_resources.present?
-      booker_resources = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
-      return results_from_response(booker_resources, booker_model) if booker_resources.present?
-      raise Booker::Error.new(url: url, request: http_options, response: booker_resources)
+      unless nil_or_empty_hash?(response.parsed_response)
+        return results_from_response(response, booker_model)
+      end
+
+      # Retry on blank responses (happens in certain v4 API methods in lieu of an actual error)
+      response = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
+      unless nil_or_empty_hash?(response.parsed_response)
+        return results_from_response(response, booker_model)
+      end
+
+      # Raise if response is still blank
+      raise Booker::Error.new(url: url, request: http_options, response: response)
     end
 
     def full_url(path)
@@ -141,10 +150,10 @@ module Booker
 
     def get_access_token
       http_options = access_token_options
-      response = raise_invalid_api_credentials_for_empty_resp! { access_token_response(http_options) }
+      token_data = raise_invalid_api_credentials_for_empty_resp!{ access_token_response(http_options) }.parsed_response
 
-      self.temp_access_token_expires_at = Time.now + response['expires_in'].to_i.seconds
-      self.temp_access_token = response['access_token']
+      self.temp_access_token_expires_at = Time.now + token_data['expires_in'].to_i.seconds
+      self.temp_access_token = token_data['access_token']
 
       update_token_store
 
@@ -154,10 +163,10 @@ module Booker
     def raise_invalid_api_credentials_for_empty_resp!
       yield
     rescue Booker::Error => ex
-      if (response = ex.response).present?
+      if ex.response && ex.response.parsed_response.present?
         raise ex
       else
-        raise Booker::InvalidApiCredentials.new(url: ex.url, request: ex.request, response: response)
+        raise Booker::InvalidApiCredentials.new(url: ex.url, request: ex.request, response: ex.response)
       end
     end
 
@@ -169,7 +178,7 @@ module Booker
       def request_options(query=nil, body=nil)
         options = {
           headers: {
-            'Content-Type' => 'application/json; charset=utf-8'
+            'Content-Type': DEFAULT_CONTENT_TYPE
           },
           open_timeout: 120
         }
@@ -196,17 +205,24 @@ module Booker
       end
 
       def results_from_response(response, booker_model=nil)
-        return response['Results'] unless response['Results'].nil?
+        parsed_response = response.parsed_response
+
+        return parsed_response unless parsed_response.is_a?(Hash)
+        return parsed_response['Results'] unless parsed_response['Results'].nil?
 
         if booker_model
           model_name = booker_model.to_s.demodulize
-          return response[model_name] unless response[model_name].nil?
+          return parsed_response[model_name] unless parsed_response[model_name].nil?
 
           pluralized = model_name.pluralize
-          return response[pluralized] unless response[pluralized].nil?
+          return parsed_response[pluralized] unless parsed_response[pluralized].nil?
         end
 
-        response.parsed_response if response
+        parsed_response
+      end
+
+      def nil_or_empty_hash?(obj)
+        obj.nil? || (obj.is_a?(Hash) && obj.blank?)
       end
   end
 end
