@@ -1,6 +1,6 @@
 module Booker
   module V5
-    class Availability < Client
+    class Availability < Booker::Client
       API_METHODS = {
         search: '/v5/availability/availability'.freeze
       }.freeze

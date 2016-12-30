@@ -1,28 +1,50 @@
 module Booker
   class Client
-    attr_accessor :base_url, :client_id, :client_secret, :temp_access_token, :temp_access_token_expires_at,
-                  :token_store, :token_store_callback_method
+    attr_accessor :base_url, :auth_base_url, :client_id, :client_secret, :temp_access_token,
+                  :temp_access_token_expires_at, :token_store, :token_store_callback_method, :api_subscription_key,
+                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials
 
-    ACCESS_TOKEN_HTTP_METHOD = :get
-    ACCESS_TOKEN_ENDPOINT = '/access_token'.freeze
+    CREATE_TOKEN_CONTENT_TYPE = 'application/x-www-form-urlencoded'.freeze
+    CLIENT_CREDENTIALS_GRANT_TYPE = 'client_credentials'.freeze
+    REFRESH_TOKEN_GRANT_TYPE = 'refresh_token'.freeze
+    CREATE_TOKEN_PATH = '/v5/auth/connect/token'.freeze
+    UPDATE_TOKEN_CONTEXT_PATH = '/v5/auth/context/update'.freeze
+    VALID_ACCESS_TOKEN_SCOPES = %w(public merchant parter-payment internal).map(&:freeze).freeze
+    API_GATEWAY_ERRORS = {
+      503 => Booker::ServiceUnavailable,
+      504 => Booker::ServiceUnavailable,
+      429 => Booker::RateLimitExceeded,
+      401 => Booker::InvalidApiCredentials,
+      403 => Booker::InvalidApiCredentials
+    }.freeze
     BOOKER_SERVER_TIMEZONE = 'Eastern Time (US & Canada)'.freeze
-    DEFAULT_CONTENT_TYPE = 'application/json; charset=utf-8'.freeze
+    DEFAULT_CONTENT_TYPE = 'application/json'.freeze
+    ENV_BASE_URL_KEY = 'BOOKER_API_BASE_URL'.freeze
+    DEFAULT_BASE_URL = 'https://api-staging.booker.com'.freeze
 
     def initialize(options = {})
       options.each { |key, value| send(:"#{key}=", value) }
       self.base_url ||= get_base_url
+      self.auth_base_url ||= ENV['BOOKER_API_BASE_URL'] || self.base_url
       self.client_id ||= ENV['BOOKER_CLIENT_ID']
       self.client_secret ||= ENV['BOOKER_CLIENT_SECRET']
+      self.api_subscription_key ||= ENV['BOOKER_API_SUBSCRIPTION_KEY']
+      if self.auth_with_client_credentials.nil?
+        self.auth_with_client_credentials = ENV['BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS'] == 'true'
+      end
+      if self.temp_access_token.present?
+        self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
+        self.access_token_scope = token_scope(self.temp_access_token)
+      end
+      if self.access_token_scope.blank?
+        self.access_token_scope = VALID_ACCESS_TOKEN_SCOPES.first
+      elsif !self.access_token_scope.in?(VALID_ACCESS_TOKEN_SCOPES)
+        raise ArgumentError, "access_token_scope must be one of: #{VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
+      end
     end
 
     def get_base_url
-      env_key = try(:env_base_url_key)
-
-      if env_key.present?
-        ENV[env_key] || try(:default_base_url)
-      else
-        try(:default_base_url)
-      end
+      ENV[self.class::ENV_BASE_URL_KEY] || self.class::DEFAULT_BASE_URL
     end
 
     def get(path, params, booker_model=nil)
@@ -115,6 +137,9 @@ module Booker
     def handle_errors!(url, request, response)
       puts "BOOKER RESPONSE: #{response}" if ENV['BOOKER_API_DEBUG'] == 'true'
 
+      error_class = API_GATEWAY_ERRORS[response.code]
+      raise error_class.new(url: url, request: request, response: response) if error_class
+
       ex = Booker::Error.new(url: url, request: request, response: response)
       if ex.error.present? || !response.success?
         case ex.error
@@ -135,13 +160,6 @@ module Booker
       (self.temp_access_token && !temp_access_token_expired?) ? self.temp_access_token : get_access_token
     end
 
-    def access_token_options
-      {
-          client_id: self.client_id,
-          client_secret: self.client_secret
-      }
-    end
-
     def update_token_store
       if self.token_store.present? && self.token_store_callback_method.present?
         self.token_store.send(self.token_store_callback_method, self.temp_access_token, self.temp_access_token_expires_at)
@@ -149,36 +167,78 @@ module Booker
     end
 
     def get_access_token
-      http_options = access_token_options
-      token_data = raise_invalid_api_credentials_for_empty_resp!{ access_token_response(http_options) }
+      unless self.auth_with_client_credentials || self.refresh_token
+        raise ArgumentError, 'Cannot get new access token without auth_with_client_credentials or a refresh_token'
+      end
 
-      self.temp_access_token_expires_at = Time.now + token_data['expires_in'].to_i.seconds
-      self.temp_access_token = token_data['access_token']
+      resp = access_token_response
+      token = resp.parsed_response['access_token']
+      raise Booker::InvalidApiCredentials.new(response: resp) if token.blank?
+
+      if self.auth_with_client_credentials && self.location_id
+        self.temp_access_token = get_location_access_token(token, self.location_id)
+      else
+        self.temp_access_token = token
+      end
+
+      self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
 
       update_token_store
 
       self.temp_access_token
     end
 
-    def raise_invalid_api_credentials_for_empty_resp!
-      yield
-    rescue Booker::Error => ex
-      if ex.response && ex.response.parsed_response.present?
-        raise ex
-      else
-        raise Booker::InvalidApiCredentials.new(url: ex.url, request: ex.request, response: ex.response)
+    def access_token_response
+      body = {
+        grant_type: self.auth_with_client_credentials ? CLIENT_CREDENTIALS_GRANT_TYPE : REFRESH_TOKEN_GRANT_TYPE,
+        client_id: self.client_id,
+        client_secret: self.client_secret,
+        scope: self.access_token_scope
+      }
+      body[:refresh_token] = self.refresh_token if body[:grant_type] == REFRESH_TOKEN_GRANT_TYPE
+      options = {
+        headers: {
+          'Content-Type' => CREATE_TOKEN_CONTENT_TYPE,
+          'Ocp-Apim-Subscription-Key' => self.api_subscription_key
+        },
+        body: body.to_query
+      }
+
+      url = "#{self.auth_base_url}#{CREATE_TOKEN_PATH}"
+
+      begin
+        handle_errors! url, options, HTTParty.post(url, options)
+      rescue Booker::ServiceUnavailable, Booker::RateLimitExceeded
+        # retry once
+        sleep 1
+        handle_errors! url, options, HTTParty.post(url, options)
       end
     end
 
-    def access_token_response(http_options)
-      send(self.class::ACCESS_TOKEN_HTTP_METHOD, self.class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
+    def get_location_access_token(existing_token, location_id)
+      options = request_options(locationId: location_id)
+      options[:headers]['Authorization'] = "Bearer #{existing_token}"
+      url = "#{self.auth_base_url}#{UPDATE_TOKEN_CONTEXT_PATH}"
+
+      begin
+        resp = handle_errors! url, options, HTTParty.post(url, options)
+      rescue Booker::ServiceUnavailable, Booker::RateLimitExceeded
+        # retry once
+        sleep 1
+        resp = handle_errors! url, options, HTTParty.post(url, options)
+      end
+
+      resp.parsed_response
     end
 
     private
       def request_options(query=nil, body=nil)
         options = {
           headers: {
-            'Content-Type': DEFAULT_CONTENT_TYPE
+            'Content-Type' => DEFAULT_CONTENT_TYPE,
+            'Accept' => DEFAULT_CONTENT_TYPE,
+            'Authorization' => "Bearer #{access_token}",
+            'Ocp-Apim-Subscription-Key' => self.api_subscription_key
           },
           open_timeout: 120
         }
@@ -223,6 +283,14 @@ module Booker
 
       def nil_or_empty_hash?(obj)
         obj.nil? || (obj.is_a?(Hash) && obj.blank?)
+      end
+
+      def token_expires_at(token)
+        Time.at(JWT.decode(token, nil, false)[0]['exp'])
+      end
+
+      def token_scope(token)
+        JWT.decode(token, nil, false)[0]['scope']
       end
   end
 end

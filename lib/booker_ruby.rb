@@ -8,6 +8,7 @@ require 'active_support/core_ext/object'
 require 'active_support/core_ext/numeric/time.rb'
 require 'active_support/time_with_zone'
 require 'active_support/time'
+require 'jwt'
 
 # Core
 require 'booker/booker'
@@ -103,7 +104,6 @@ require 'booker/generic_token_store'
 # Client Subclasses
 require 'booker/v4/business_client'
 require 'booker/v4/customer_client'
-require 'booker/v5/client'
 require 'booker/v5/availability'
 
 # Helpers

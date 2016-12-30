@@ -2,18 +2,14 @@ module Booker
   module V4
     class CustomerClient < Client
       include Booker::V4::CustomerREST
+      ENV_BASE_URL_KEY = 'BOOKER_CUSTOMER_SERVICE_URL'.freeze
+      DEFAULT_BASE_URL = 'https://apicurrent-app.booker.ninja/webservice4/json/CustomerService.svc'.freeze
 
       def initialize(options={})
         super
         self.token_store ||= GenericTokenStore
         self.token_store_callback_method ||= :update_booker_access_token!
       end
-
-      def env_base_url_key; 'BOOKER_CUSTOMER_SERVICE_URL'; end
-
-      def default_base_url; 'https://apicurrent-app.booker.ninja/webservice4/json/CustomerService.svc'; end
-
-      def access_token_options; super.merge!(grant_type: 'client_credentials'); end
     end
   end
 end

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Booker::V5::Availability do
   let(:client) { described_class.new }
-  it { is_expected.to be_a(Booker::V5::Client) }
+  it { is_expected.to be_a(Booker::Client) }
 
   describe '#search' do
     let(:location_ids) { [456] }

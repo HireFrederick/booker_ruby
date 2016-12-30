@@ -5,9 +5,6 @@ describe Booker::V4::BusinessREST do
     Booker::V4::BusinessClient.new(
       client_id: 'foo_client_id',
       client_secret: 'foo_client_secred',
-      booker_account_name: 'foo_account_name',
-      booker_username: 'foo_username',
-      booker_password: 'foo_password'
     )
   end
   let(:booker_location_id) { 10257 }

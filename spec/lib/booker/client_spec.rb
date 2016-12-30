@@ -1,20 +1,28 @@
 require 'spec_helper'
 
 describe Booker::Client do
-  let(:base_url) { 'http://foo' }
+  let(:base_url) { described_class::DEFAULT_BASE_URL }
   let(:client_id) { 'client_id' }
   let(:client_secret) { 'client_secret' }
   let(:temp_access_token) { 'temp_access_token' }
   let(:temp_access_token_expires_at) { Time.now + 1.minute }
+  let(:refresh_token) { 'refresh_token' }
+  let(:api_subscription_key) { 'sub_key' }
+  let(:access_token_scope) { 'merchant' }
+  let(:location_id) { nil }
+  let(:auth_with_client_credentials) { false }
   let(:client) do
     Booker::Client.new(
-        base_url: base_url,
-        temp_access_token: temp_access_token,
-        temp_access_token_expires_at: temp_access_token_expires_at,
-        client_id: client_id,
-        client_secret: client_secret,
-        token_store: token_store,
-        token_store_callback_method: token_store_callback_method
+      base_url: base_url,
+      temp_access_token: temp_access_token,
+      client_id: client_id,
+      client_secret: client_secret,
+      token_store: token_store,
+      token_store_callback_method: token_store_callback_method,
+      api_subscription_key: api_subscription_key,
+      location_id: location_id,
+      auth_with_client_credentials: auth_with_client_credentials,
+      refresh_token: refresh_token
     )
   end
   let(:token_store) { Booker::GenericTokenStore }
@@ -26,74 +34,89 @@ describe Booker::Client do
     }
   end
   let(:response) { 'response' }
+  let!(:jwt_stubs) do
+    allow_any_instance_of(described_class).to receive(:token_expires_at).and_return temp_access_token_expires_at
+    allow_any_instance_of(described_class).to receive(:token_scope).and_return access_token_scope
+  end
 
   describe 'constants' do
     it 'sets constants to right vals' do
-      expect(described_class::ACCESS_TOKEN_HTTP_METHOD).to eq :get
-      expect(described_class::ACCESS_TOKEN_ENDPOINT).to eq '/access_token'
+      expect(described_class::CREATE_TOKEN_CONTENT_TYPE).to eq 'application/x-www-form-urlencoded'
+      expect(described_class::CLIENT_CREDENTIALS_GRANT_TYPE).to eq 'client_credentials'
+      expect(described_class::REFRESH_TOKEN_GRANT_TYPE).to eq 'refresh_token'
+      expect(described_class::CREATE_TOKEN_PATH).to eq '/v5/auth/connect/token'
+      expect(described_class::UPDATE_TOKEN_CONTEXT_PATH).to eq '/v5/auth/context/update'
+      expect(described_class::VALID_ACCESS_TOKEN_SCOPES).to eq %w(public merchant parter-payment internal)
+      expect(described_class::API_GATEWAY_ERRORS).to eq({
+        503 => Booker::ServiceUnavailable,
+        504 => Booker::ServiceUnavailable,
+        429 => Booker::RateLimitExceeded,
+        401 => Booker::InvalidApiCredentials,
+        403 => Booker::InvalidApiCredentials
+      })
       expect(described_class::BOOKER_SERVER_TIMEZONE).to eq 'Eastern Time (US & Canada)'
     end
   end
 
   describe '.new' do
+    let!(:jwt_stubs) do
+      allow_any_instance_of(described_class).to receive(:token_expires_at)
+                                                  .with(temp_access_token).and_return temp_access_token_expires_at
+      allow_any_instance_of(described_class).to receive(:token_scope)
+                                                  .with(temp_access_token).and_return access_token_scope
+    end
+
     before do
       allow(ENV).to receive(:[]).with('BOOKER_CLIENT_ID').and_return 'id from env'
       allow(ENV).to receive(:[]).with('BOOKER_CLIENT_SECRET').and_return 'secret from env'
+      allow(ENV).to receive(:[]).with('BOOKER_API_BASE_URL').and_return 'api base url from env'
+      allow(ENV).to receive(:[]).with('BOOKER_API_SUBSCRIPTION_KEY').and_return 'sub key from env'
+      allow(ENV).to receive(:[]).with('BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS').and_return 'true'
     end
 
     it 'builds a client with the valid options given' do
       expect(client.base_url).to eq base_url
       expect(client.temp_access_token).to eq temp_access_token
+      expect(client.refresh_token).to eq refresh_token
       expect(client.temp_access_token_expires_at).to eq temp_access_token_expires_at
       expect(client.client_id).to eq client_id
       expect(client.client_secret).to eq client_secret
+      expect(client.auth_with_client_credentials).to be false
+      expect(client.access_token_scope).to eq access_token_scope
     end
 
-    context 'without client_id specified' do
+    context 'no access token or scope provided' do
+      let(:client) { Booker::Client.new }
+
+      it 'sets default access token scope to public' do
+        expect(client.access_token_scope).to eq 'public'
+      end
+    end
+
+    context 'defaults from ENV' do
       let(:client) { Booker::Client.new }
 
       it 'loads from ENV' do
         expect(client.client_id).to eq 'id from env'
         expect(client.client_secret).to eq 'secret from env'
+        expect(client.auth_with_client_credentials).to be true
+        expect(client.auth_base_url).to eq 'api base url from env'
+        expect(client.api_subscription_key).to eq 'sub key from env'
       end
     end
   end
 
   describe '#get_base_url' do
-    let(:env_base_url_key) { 'foo' }
-
-    before { expect(client).to receive(:env_base_url_key).with(no_args).and_return(env_base_url_key) }
-
-    context 'no urls' do
-      let(:default_base_url) { nil }
-
-      before { expect(client).to receive(:default_base_url).with(no_args).and_return(default_base_url) }
-
-      it 'returns nil' do
-        expect(client.get_base_url).to eq nil
-      end
+    it 'returns default_base_url' do
+      expect(subject.get_base_url).to eq described_class::DEFAULT_BASE_URL
     end
 
-    context 'env_base_url_key returns value from ENV' do
-      let(:env_url) { 'env_url' }
+    context 'from env' do
+      before { ENV['BOOKER_API_BASE_URL'] = 'http://from_env' }
+      after { ENV['BOOKER_API_BASE_URL'] = nil }
 
-      before do
-        expect(ENV).to receive(:[]).with(env_base_url_key).and_return(env_url)
-        expect(client).to_not receive(:default_base_url)
-      end
-
-      it 'returns env_url' do
-        expect(client.get_base_url).to eq env_url
-      end
-    end
-
-    context 'default_base_url returns val' do
-      let(:default_base_url) { 'default_base_url' }
-
-      before { expect(client).to receive(:default_base_url).with(no_args).and_return(default_base_url) }
-
-      it 'returns nil' do
-        expect(client.get_base_url).to eq default_base_url
+      it 'returns from env' do
+        expect(subject.get_base_url).to eq 'http://from_env'
       end
     end
   end
@@ -101,13 +124,18 @@ describe Booker::Client do
   describe '#get' do
     let(:http_party_options) {
       {
-          headers: {'Content-Type':"application/json; charset=utf-8"},
+          headers: {
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Authorization' => "Bearer #{temp_access_token}",
+            'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
           query: data,
           open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
 
     it 'makes the request using the options given' do
       expect(client).to receive(:get_booker_resources).with(:get, '/blah/blah', data, nil, Booker::V4::Models::Model).and_call_original
@@ -127,13 +155,18 @@ describe Booker::Client do
   describe '#post' do
     let(:http_party_options) {
       {
-          headers: {'Content-Type':"application/json; charset=utf-8"},
+        headers: {
+          'Content-Type' => 'application/json',
+          'Authorization' => "Bearer #{temp_access_token}",
+          'Accept' => 'application/json',
+          'Ocp-Apim-Subscription-Key' => api_subscription_key
+        },
           body: post_data.to_json,
           open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
     let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
 
     it 'makes the request using the options given' do
@@ -154,13 +187,18 @@ describe Booker::Client do
   describe '#put' do
     let(:http_party_options) {
       {
-        headers: {'Content-Type':"application/json; charset=utf-8"},
+        headers: {
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json',
+          'Authorization' => "Bearer #{temp_access_token}",
+          'Ocp-Apim-Subscription-Key' => api_subscription_key
+        },
         body: post_data.to_json,
         open_timeout: 120
       }
     }
     let(:data) { {data: 'datum'} }
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
     let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
 
     it 'makes the request using the options given' do
@@ -282,13 +320,18 @@ describe Booker::Client do
 
   describe '#get_booker_resources' do
     let(:data) { {data: 'datum'} }
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 200) }
     let(:parsed_response) { {'Results' => [data]} }
     let(:params) { {foo: 'bar'} }
     let(:body) { {bar: 'foo'} }
     let(:http_party_options) do
       {
-          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          headers: {
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Authorization' => "Bearer #{temp_access_token}",
+            'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
           body: body,
           query: params,
           open_timeout: 120
@@ -325,7 +368,7 @@ describe Booker::Client do
     end
 
     context 'no Results' do
-      let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 200) }
       let(:parsed_response) { {'Foo' => []} }
 
       it 'returns the parsed response' do
@@ -336,8 +379,8 @@ describe Booker::Client do
     end
 
     context 'response not present on first request' do
-      let(:resp) { instance_double(HTTParty::Response, parsed_response: {}) }
-      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: {}, code: 200) }
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
 
       it 'makes another request, returns results' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
@@ -349,7 +392,7 @@ describe Booker::Client do
       end
 
       context 'no Results' do
-        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => []}) }
+        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => []}, code: 200) }
 
         it 'returns the parsed response' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
@@ -362,7 +405,7 @@ describe Booker::Client do
       end
 
       context 'no response on second request' do
-        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {}) }
+        let(:resp2) { instance_double(HTTParty::Response, parsed_response: {}, code: 200) }
 
         it 'raises Booker::Error' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp)
@@ -378,8 +421,8 @@ describe Booker::Client do
     end
 
     context 'response not successful on first request' do
-      let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
-      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 500) }
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
 
       it 'makes another request, returns results' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
@@ -392,7 +435,7 @@ describe Booker::Client do
     end
 
     context 'Net::ReadTimeout on first request' do
-      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
 
       it 'makes another request, returns results' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_raise Net::ReadTimeout
@@ -444,8 +487,17 @@ describe Booker::Client do
   end
 
   describe '#handle_errors!' do
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 200) }
     let(:parsed_response) { {} }
+    let(:request) { 'request' }
+    let(:url) { 'url' }
+
+    it 'raises API Gateway errors' do
+      described_class::API_GATEWAY_ERRORS.each do |k, v|
+        response = instance_double(HTTParty::Response, code: k, parsed_response: {})
+        expect{client.send(:handle_errors!, url, request, response)}.to raise_error v
+      end
+    end
 
     context 'booker error present' do
       context 'invalid_client' do
@@ -504,120 +556,6 @@ describe Booker::Client do
     end
   end
 
-  describe '#access_token_options' do
-    it 'returns right access_token_options' do
-      expect(client.access_token_options).to eq(
-                                                 client_id: client_id,
-                                                 client_secret: client_secret
-                                             )
-    end
-  end
-
-  describe '#get_access_token' do
-    let(:temp_access_token) { nil }
-    let(:temp_access_token_expires_at) { nil }
-    let(:now) { Time.parse('2015-01-09') }
-    let(:expires_in) { 100 }
-    let(:expires_at) { now + expires_in }
-    let(:access_token) { 'access_token' }
-    let(:parsed_response) do
-      {
-        'expires_in' => expires_in.to_s,
-        'access_token' => access_token
-
-      }
-    end
-
-    before { allow(Time).to receive(:now).with(no_args).and_return(now) }
-
-    context 'raise_invalid_api_credentials_for_empty_resp! yields' do
-      before do
-        expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args).and_call_original
-        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(parsed_response)
-        expect(client).to receive(:update_token_store).with(no_args)
-      end
-
-      it 'sets token info and returns a temp access token' do
-        token = client.get_access_token
-        expect(token).to eq access_token
-        expect(token).to eq client.temp_access_token
-        expect(client.temp_access_token_expires_at).to be_a Time
-        expect(client.temp_access_token_expires_at).to eq expires_at
-      end
-    end
-
-    context 'raise_invalid_api_credentials_for_empty_resp! does not yield' do
-      let(:parsed_response) { {} }
-
-      before do
-        expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args)
-        expect(client).to_not receive(:get).with('/access_token', http_options, nil)
-        expect(response).to_not receive(:parsed_response)
-        expect(client).to_not receive(:update_token_store)
-      end
-
-      it 'raises Booker::InvalidApiCredentials, does not set token info' do
-        expect { client.get_access_token }.to raise_error NoMethodError
-        expect(client.temp_access_token_expires_at).to eq nil
-        expect(client.temp_access_token).to eq nil
-      end
-    end
-  end
-
-  describe '#raise_invalid_api_credentials_for_empty_resp!' do
-    let(:block_string) { 'inside_block' }
-
-    it 'it returns output of block_code' do
-      expect(
-          client.raise_invalid_api_credentials_for_empty_resp! { block_string }
-      ).to be block_string
-    end
-
-    context 'block code raises error' do
-      let(:block_method) { :to_i }
-      let(:request) { 'request' }
-      let(:response) { instance_double(HTTParty::Response, parsed_response: '') }
-      let(:exception) { Booker::Error.new(url: 'url', request: request, response: response) }
-
-      before { expect(block_string).to receive(block_method).and_raise(exception) }
-
-      context 'response not present' do
-        before { expect(Booker::InvalidApiCredentials).to receive(:new)
-          .with(url: 'url', request: request, response: response).and_call_original }
-
-        it 'raises InvalidApiCredentials' do
-          expect{
-            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
-          }.to raise_error Booker::InvalidApiCredentials
-        end
-      end
-
-      context 'response present' do
-        let(:response) { instance_double(HTTParty::Response, parsed_response: 'response') }
-
-        before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
-
-        it 'raises Booker::Error' do
-          expect{
-            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
-          }.to raise_error exception.class
-        end
-      end
-
-      context 'error not booker error' do
-        let(:exception) { StandardError }
-
-        before { expect(Booker::InvalidApiCredentials).to_not receive(:new) }
-
-        it 'raises Booker::Error' do
-          expect{
-            client.raise_invalid_api_credentials_for_empty_resp! { block_string.send(block_method) }
-          }.to raise_error exception
-        end
-      end
-    end
-  end
-
   describe '#update_token_store' do
     after { client.update_token_store }
 
@@ -642,13 +580,275 @@ describe Booker::Client do
     end
   end
 
-  describe '#access_token_response' do
-    after { expect(client.access_token_response(http_options)).to eq response }
+  describe '#get_access_token' do
+    let(:temp_access_token) { nil }
+    let(:temp_access_token_expires_at) { Time.now + 1.day }
+    let(:auth_with_client_credentials) { true }
+    let(:refresh_token) { nil }
+    let(:access_token) { 'access_token' }
+    let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:parsed_response) do
+      {
+        'access_token' => access_token
+      }
+    end
+    let(:result) { client.get_access_token }
+    let!(:jwt_stubs) do
+      allow_any_instance_of(described_class).to receive(:token_expires_at)
+                                                  .with(access_token).and_return temp_access_token_expires_at
+    end
 
-    it 'calls the token store' do
-      expect(client).to receive(described_class::ACCESS_TOKEN_HTTP_METHOD)
-                            .with(described_class::ACCESS_TOKEN_ENDPOINT, http_options, nil)
-                            .and_return(response)
+    context 'auth_with_client_credentials is true' do
+      before do
+        expect(client).to receive(:access_token_response).and_return(response)
+        expect(client).to receive(:update_token_store).with(no_args)
+      end
+
+      it 'sets token info and returns a temp access token' do
+        expect(client).to_not receive(:get_location_access_token)
+        expect(result).to eq access_token
+        expect(result).to eq client.temp_access_token
+        expect(client.temp_access_token_expires_at).to be temp_access_token_expires_at
+      end
+
+      context 'client has location_id' do
+        let(:location_token) { 'location token' }
+        let(:location_id) { 31415926 }
+        let!(:jwt_stubs) do
+          allow_any_instance_of(described_class).to receive(:token_expires_at)
+                                                      .with(location_token).and_return temp_access_token_expires_at
+        end
+
+        before { expect(client).to receive(:get_location_access_token).and_return location_token }
+
+        it 'gets a location access token and returns it as temp access token' do
+          expect(result).to eq location_token
+          expect(result).to eq client.temp_access_token
+          expect(client.temp_access_token_expires_at).to be temp_access_token_expires_at
+        end
+      end
+    end
+
+    context 'refresh token and location_id' do
+      let(:location_id) { 31415926 }
+      let(:auth_with_client_credentials) { false }
+      let(:refresh_token) { 'refresh_token' }
+
+      before do
+        expect(client).to receive(:access_token_response).and_return(response)
+        expect(client).to receive(:update_token_store).with(no_args)
+      end
+
+      it 'sets token info and returns a temp access token, ignores location_id' do
+        expect(client).to_not receive(:get_location_access_token)
+        expect(result).to eq access_token
+        expect(result).to eq client.temp_access_token
+        expect(client.temp_access_token_expires_at).to be temp_access_token_expires_at
+      end
+    end
+
+    context 'neither refresh token nor auth_with_client_credentials' do
+      let(:auth_with_client_credentials) { false }
+
+      before do
+        expect(client).to_not receive(:access_token_response)
+        expect(client).to_not receive(:update_token_store)
+      end
+
+      it 'raises' do
+        expect{result}.to raise_error(
+          ArgumentError,
+          'Cannot get new access token without auth_with_client_credentials or a refresh_token'
+        )
+      end
+    end
+  end
+
+  describe '#access_token_response' do
+    let(:url) { "#{base_url}/v5/auth/connect/token" }
+
+    context 'auth_with_client_credentials' do
+      let(:auth_with_client_credentials) { true }
+      let(:options) do
+        {
+          headers: {
+            'Content-Type' => described_class::CREATE_TOKEN_CONTENT_TYPE,
+            'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
+          body: {
+            grant_type: described_class::CLIENT_CREDENTIALS_GRANT_TYPE,
+            client_id: client_id,
+            client_secret: client_secret,
+            scope: access_token_scope
+          }.to_query
+        }
+      end
+      let(:resp) { instance_double(HTTParty::Response, success?: true, code: 201, parsed_response: {}) }
+
+      before { expect(HTTParty).to receive(:post).with(url, options).and_return resp }
+
+      context 'success' do
+        it 'returns response' do
+          expect(client.access_token_response).to eq resp
+        end
+      end
+
+      context 'non-recoverable error' do
+        let(:resp) { instance_double(HTTParty::Response, success?: true, code: 401, parsed_response: {}) }
+
+        it 'retries once' do
+          expect{client.access_token_response}.to raise_error(Booker::InvalidApiCredentials)
+        end
+      end
+
+      context 'recoverable errors' do
+        before do
+          expect(HTTParty).to receive(:post).with(url, options).and_return resp2
+          expect(client).to receive(:sleep).with(1)
+        end
+
+        context 'Booker::ServiceUnavailable error' do
+          let(:resp) { instance_double(HTTParty::Response, success?: true, code: 503, parsed_response: {}) }
+          let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 503, parsed_response: {}) }
+
+          it 'retries once' do
+            expect{client.access_token_response}.to raise_error(Booker::ServiceUnavailable)
+          end
+
+          context 'success on second retry' do
+            let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 200, parsed_response: {}) }
+
+            it 'returns response' do
+              expect(client.access_token_response).to eq resp2
+            end
+          end
+        end
+
+        context 'Booker::RateLimitExceeded error' do
+          let(:resp) { instance_double(HTTParty::Response, success?: true, code: 429, parsed_response: {}) }
+          let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 429, parsed_response: {}) }
+
+          it 'retries once' do
+            expect{client.access_token_response}.to raise_error(Booker::RateLimitExceeded)
+          end
+
+          context 'success on second retry' do
+            let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 200, parsed_response: {}) }
+
+            it 'returns response' do
+              expect(client.access_token_response).to eq resp2
+            end
+          end
+        end
+      end
+    end
+
+    context 'with refresh token' do
+      let(:auth_with_client_credentials) { false }
+      let(:options) do
+        {
+          headers: {
+            'Content-Type' => described_class::CREATE_TOKEN_CONTENT_TYPE,
+            'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
+          body: {
+            grant_type: described_class::REFRESH_TOKEN_GRANT_TYPE,
+            client_id: client_id,
+            client_secret: client_secret,
+            scope: access_token_scope,
+            refresh_token: refresh_token
+          }.to_query
+        }
+      end
+      let(:resp) { instance_double(HTTParty::Response, success?: true, code: 201, parsed_response: {}) }
+
+      before { expect(HTTParty).to receive(:post).with(url, options).and_return resp }
+
+      context 'success' do
+        it 'returns response' do
+          expect(client.access_token_response).to eq resp
+        end
+      end
+    end
+  end
+
+  describe '#get_location_access_token' do
+    let(:url) { "#{base_url}/v5/auth/context/update"  }
+    let(:location_id) { 123 }
+    let(:original_token) { 'token' }
+    let(:options) do
+      {
+        headers: {
+          'Ocp-Apim-Subscription-Key' => api_subscription_key,
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json',
+          'Authorization' => "Bearer #{original_token}"
+        },
+        query: {
+          locationId: location_id
+        },
+        open_timeout: 120
+      }
+    end
+    let(:new_token) { 'new token' }
+    let(:resp) { instance_double(HTTParty::Response, success?: true, code: 200, parsed_response: new_token) }
+    let(:result) { client.get_location_access_token(original_token, location_id) }
+
+    before { expect(HTTParty).to receive(:post).with(url, options).and_return resp }
+
+    context 'success' do
+      it 'returns response' do
+        expect(result).to eq new_token
+      end
+    end
+
+    context 'non-recoverable error' do
+      let(:resp) { instance_double(HTTParty::Response, success?: true, code: 401, parsed_response: {}) }
+
+      it 'retries once' do
+        expect{result}.to raise_error(Booker::InvalidApiCredentials)
+      end
+    end
+
+    context 'recoverable errors' do
+      before do
+        expect(HTTParty).to receive(:post).with(url, options).and_return resp2
+        expect(client).to receive(:sleep).with(1)
+      end
+
+      context 'Booker::ServiceUnavailable error' do
+        let(:resp) { instance_double(HTTParty::Response, success?: true, code: 503, parsed_response: {}) }
+        let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 503, parsed_response: {}) }
+
+        it 'retries once' do
+          expect{result}.to raise_error(Booker::ServiceUnavailable)
+        end
+
+        context 'success on second retry' do
+          let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 200, parsed_response: new_token) }
+
+          it 'returns response' do
+            expect(result).to eq new_token
+          end
+        end
+      end
+
+      context 'Booker::RateLimitExceeded error' do
+        let(:resp) { instance_double(HTTParty::Response, success?: true, code: 429, parsed_response: {}) }
+        let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 429, parsed_response: {}) }
+
+        it 'retries once' do
+          expect{result}.to raise_error(Booker::RateLimitExceeded)
+        end
+
+        context 'success on second retry' do
+          let(:resp2) { instance_double(HTTParty::Response, success?: true, code: 200, parsed_response: new_token) }
+
+          it 'returns response' do
+            expect(result).to eq new_token
+          end
+        end
+      end
     end
   end
 
