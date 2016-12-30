@@ -96,7 +96,6 @@ describe Booker::V4::CustomerClient do
     let(:expires_in) { 100 }
     let(:expires_at) { now + expires_in }
     let(:access_token) { 'access_token' }
-    let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
     let(:parsed_response) do
       {
         'expires_in' => expires_in.to_s,
@@ -109,7 +108,7 @@ describe Booker::V4::CustomerClient do
 
     context 'response present' do
       before do
-        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(parsed_response)
         expect(client).to receive(:update_token_store).with(no_args)
       end
 

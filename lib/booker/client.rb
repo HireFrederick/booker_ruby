@@ -93,13 +93,13 @@ module Booker
         end
       end
 
-      unless nil_or_empty_hash?(response.parsed_response)
+      unless response.nil? || nil_or_empty_hash?(response.parsed_response)
         return results_from_response(response, booker_model)
       end
 
       # Retry on blank responses (happens in certain v4 API methods in lieu of an actual error)
       response = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
-      unless nil_or_empty_hash?(response.parsed_response)
+      unless response.nil? || nil_or_empty_hash?(response.parsed_response)
         return results_from_response(response, booker_model)
       end
 
@@ -150,7 +150,7 @@ module Booker
 
     def get_access_token
       http_options = access_token_options
-      token_data = raise_invalid_api_credentials_for_empty_resp!{ access_token_response(http_options) }.parsed_response
+      token_data = raise_invalid_api_credentials_for_empty_resp!{ access_token_response(http_options) }
 
       self.temp_access_token_expires_at = Time.now + token_data['expires_in'].to_i.seconds
       self.temp_access_token = token_data['access_token']

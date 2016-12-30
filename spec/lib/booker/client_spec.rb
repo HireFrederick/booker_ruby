@@ -342,6 +342,7 @@ describe Booker::Client do
       it 'makes another request, returns results' do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
+        expect(client).to_not receive(:sleep)
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
         expect(resp2).to receive(:success?).and_return(true)
         expect(client.get_booker_resources(:get, path, params, body)).to eq [data]
@@ -353,6 +354,7 @@ describe Booker::Client do
         it 'returns the parsed response' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
+          expect(client).to_not receive(:sleep).with(1)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
           expect(client.get_booker_resources(:get, path, params, body)).to eq []
@@ -365,12 +367,39 @@ describe Booker::Client do
         it 'raises Booker::Error' do
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp)
           expect(resp).to receive(:success?).and_return(true)
+          expect(client).to_not receive(:sleep)
           expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", kind_of(Hash)).and_return(resp2)
           expect(resp2).to receive(:success?).and_return(true)
           expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp).and_call_original
           expect(Booker::Error).to receive(:new).with(url: "#{client.base_url}/blah/blah", request: kind_of(Hash), response: resp2).twice.and_call_original
           expect{client.get_booker_resources(:get, path, params, body)}.to raise_error(Booker::Error)
         end
+      end
+    end
+
+    context 'response not successful on first request' do
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+
+      it 'makes another request, returns results' do
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+        expect(resp).to receive(:success?).and_return(false)
+        expect(client).to receive(:sleep).with(1)
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
+        expect(resp2).to receive(:success?).and_return(true)
+        expect(client.get_booker_resources(:get, path, params, body)).to eq [data]
+      end
+    end
+
+    context 'Net::ReadTimeout on first request' do
+      let(:resp2) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}) }
+
+      it 'makes another request, returns results' do
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_raise Net::ReadTimeout
+        expect(client).to receive(:sleep).with(1)
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp2)
+        expect(resp2).to receive(:success?).and_return(true)
+        expect(client.get_booker_resources(:get, path, params, body)).to eq [data]
       end
     end
   end
@@ -491,7 +520,6 @@ describe Booker::Client do
     let(:expires_in) { 100 }
     let(:expires_at) { now + expires_in }
     let(:access_token) { 'access_token' }
-    let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
     let(:parsed_response) do
       {
         'expires_in' => expires_in.to_s,
@@ -505,7 +533,7 @@ describe Booker::Client do
     context 'raise_invalid_api_credentials_for_empty_resp! yields' do
       before do
         expect(client).to receive(:raise_invalid_api_credentials_for_empty_resp!).with(no_args).and_call_original
-        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(response)
+        expect(client).to receive(:get).with('/access_token', http_options, nil).and_return(parsed_response)
         expect(client).to receive(:update_token_store).with(no_args)
       end
 
