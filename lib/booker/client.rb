@@ -216,8 +216,18 @@ module Booker
     end
 
     def get_location_access_token(existing_token, location_id)
-      options = request_options(locationId: location_id)
-      options[:headers]['Authorization'] = "Bearer #{existing_token}"
+      options = {
+        headers: {
+          'Content-Type' => DEFAULT_CONTENT_TYPE,
+          'Accept' => 'application/json',
+          'Authorization' => "Bearer #{existing_token}",
+          'Ocp-Apim-Subscription-Key' => self.api_subscription_key
+        },
+        query: {
+          locationId: location_id
+        },
+        open_timeout: 120
+      }
       url = "#{self.auth_base_url}#{UPDATE_TOKEN_CONTEXT_PATH}"
 
       begin
