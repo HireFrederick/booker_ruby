@@ -12,10 +12,10 @@ Gem::Specification.new do |s|
   s.email       = ['friends@hirefrederick.com']
   s.homepage    = 'https://github.com/hirefrederick/booker_ruby'
   s.summary       = %q{
-    Ruby client for the Booker v4 API - http://apidoc.booker.com
+    Ruby client for the Booker API - https://developers.booker.com
   }
   s.license       = 'MIT'
-  s.files       = Dir['{lib}/**/*', 'MIT-LICENSE', 'README.rdoc']
+  s.files       = Dir['{lib}/**/*', 'MIT-LICENSE']
 
   s.add_dependency 'httparty', '~> 0.14'
   s.add_dependency 'activesupport', '>= 3.0.0'
