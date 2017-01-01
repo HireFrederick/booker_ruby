@@ -35,12 +35,12 @@ describe Booker::V4::CustomerREST do
     ) }
     let(:result) { client.create_appointment(booker_location_id: 10257, available_time: available_time, customer: customer) }
     let(:expected_params) {{
-      'LocationID' => 10257,
-      'ItineraryTimeSlotList' => [
-        'TreatmentTimeSlots' => [available_time]
+      LocationID: 10257,
+      ItineraryTimeSlotList: [
+        TreatmentTimeSlots: [available_time]
       ],
-      'Customer' => customer,
-      'access_token' => 'access_token'
+      Customer: customer,
+      access_token: 'access_token'
     }}
 
     before do
@@ -53,15 +53,15 @@ describe Booker::V4::CustomerREST do
     end
 
     context 'other options' do
-      let(:options) {{'another_option' => 'foo'}}
+      let(:options) {{another_option: 'foo'}}
 
       let(:expected_params) {{
-        'LocationID' => 10257,
-        'ItineraryTimeSlotList' => [
-          'TreatmentTimeSlots' => [available_time]
+        LocationID: 10257,
+        ItineraryTimeSlotList: [
+          TreatmentTimeSlots: [available_time]
         ],
-        'Customer' => customer,
-        'access_token' => 'access_token',
+        Customer: customer,
+        access_token: 'access_token',
       }.merge(options)}
       let(:result) { client.create_appointment(booker_location_id: 10257, available_time: available_time, customer: customer, options: options) }
 
@@ -90,10 +90,10 @@ describe Booker::V4::CustomerREST do
     ) }
     let(:result) { client.create_class_appointment(booker_location_id: 10257, class_instance_id: 3944336, customer: customer) }
     let(:expected_params) {{
-      'LocationID' => 10257,
-      'ClassInstanceID' => 3944336,
-      'Customer' => customer,
-      'access_token' => 'access_token'
+      LocationID: 10257,
+      ClassInstanceID: 3944336,
+      Customer: customer,
+      access_token: 'access_token'
     }}
 
     before do
@@ -106,13 +106,13 @@ describe Booker::V4::CustomerREST do
     end
 
     context 'other options' do
-      let(:options) {{'another_option' => 'foo'}}
+      let(:options) {{another_option: 'foo'}}
 
       let(:expected_params) {{
-        'LocationID' => 10257,
-        'ClassInstanceID' => 3944336,
-        'Customer' => customer,
-        'access_token' => 'access_token',
+        LocationID: 10257,
+        ClassInstanceID: 3944336,
+        Customer: customer,
+        access_token: 'access_token',
       }.merge(options)}
       let(:result) { client.create_class_appointment(booker_location_id: 10257, class_instance_id: 3944336, customer: customer, options: options) }
 
@@ -134,13 +134,13 @@ describe Booker::V4::CustomerREST do
       )
     end
     let(:expected_params) {{
-        'LocationIDs' => [10257],
-        'TreatmentSubCategoryIDs' => [89],
-        'StartDateTime' => '/Date(1438502400000)/',
-        'EndDateTime' => '/Date(1438588799000)/',
-        'MaxTimesPerTreatment' => 1000,
-        'access_token' => 'access_token'
-      }}
+      LocationIDs: [10257],
+      TreatmentSubCategoryIDs: [89],
+      StartDateTime: '/Date(1438502400000)/',
+      EndDateTime: '/Date(1438588799000)/',
+      MaxTimesPerTreatment: 1000,
+      access_token: 'access_token'
+    }}
 
     before do
       expect(client).to receive(:access_token).and_return 'access_token'
@@ -152,17 +152,17 @@ describe Booker::V4::CustomerREST do
     end
 
     context 'other options' do
-      let(:options) {{'another_option' => 'foo'}}
+      let(:options) {{another_option: 'foo'}}
 
       let(:expected_params) {{
-        'LocationIDs' => [10257],
-        'TreatmentSubCategoryIDs' => [89],
-        'StartDateTime' => '/Date(1438502400000)/',
-        'EndDateTime' => '/Date(1438588799000)/',
-        'MaxTimesPerTreatment' => 1000,
-        'access_token' => 'access_token',
-        'another_option' => 'foo'
-        }}
+        LocationIDs: [10257],
+        TreatmentSubCategoryIDs: [89],
+        StartDateTime: '/Date(1438502400000)/',
+        EndDateTime: '/Date(1438588799000)/',
+        MaxTimesPerTreatment: 1000,
+        access_token: 'access_token',
+        another_option: 'foo'
+      }}
 
       it 'adds other options passed in to the params' do
         expect(result).to eq []
@@ -182,12 +182,12 @@ describe Booker::V4::CustomerREST do
       )
     end
     let(:expected_params) {{
-      'LocationID' => 10257,
-      'StartDateTime' => '/Date(1438502400000)/',
-      'EndDateTime' => '/Date(1438588799000)/',
-      'MaxTimesPerDay' => 100,
-      'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
-      'access_token' => 'access_token'
+      LocationID: 10257,
+      StartDateTime: '/Date(1438502400000)/',
+      EndDateTime: '/Date(1438588799000)/',
+      MaxTimesPerDay: 100,
+      Itineraries: [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
+      access_token: 'access_token'
     }}
 
     before do
@@ -211,12 +211,12 @@ describe Booker::V4::CustomerREST do
         )
       end
       let(:expected_params) {{
-          'LocationID' => 10257,
-          'StartDateTime' => '/Date(1438502400000)/',
-          'EndDateTime' => '/Date(1438588799000)/',
-          'MaxTimesPerDay' => 100,
-          'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => 1234}]}],
-          'access_token' => 'access_token'
+        LocationID: 10257,
+        StartDateTime: '/Date(1438502400000)/',
+        EndDateTime: '/Date(1438588799000)/',
+        MaxTimesPerDay: 100,
+        Itineraries: [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => 1234}]}],
+        access_token: 'access_token'
       }}
 
       it 'delegates to post' do
@@ -225,16 +225,16 @@ describe Booker::V4::CustomerREST do
     end
 
     context 'other options' do
-      let(:options) {{'another_option' => 'foo'}}
+      let(:options) {{another_option: 'foo'}}
 
       let(:expected_params) {{
-        'LocationID' => 10257,
-        'StartDateTime' => '/Date(1438502400000)/',
-        'EndDateTime' => '/Date(1438588799000)/',
-        'MaxTimesPerDay' => 100,
-        'Itineraries' => [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
-        'access_token' => 'access_token',
-        'another_option' => 'foo'
+        LocationID: 10257,
+        StartDateTime: '/Date(1438502400000)/',
+        EndDateTime: '/Date(1438588799000)/',
+        MaxTimesPerDay: 100,
+        Itineraries: [{'Treatments' => [{'TreatmentID' => 123, 'EmployeeID' => nil}]}],
+        access_token: 'access_token',
+        another_option: 'foo'
       }}
 
       it 'adds other options passed in to the params' do
@@ -252,12 +252,12 @@ describe Booker::V4::CustomerREST do
         options: options
     ) }
     let(:expected_params) {{
-      'FromStartDateTime' => '/Date(1438934400000)/',
-      'LocationID' => 10257,
-      'OnlyIfAvailable' => true,
-      'ToStartDateTime' => '/Date(1439020799000)/',
-      'ExcludeClosedDates' => true,
-      'access_token' => 'access_token'
+      FromStartDateTime: '/Date(1438934400000)/',
+      LocationID: 10257,
+      OnlyIfAvailable: true,
+      ToStartDateTime: '/Date(1439020799000)/',
+      ExcludeClosedDates: true,
+      access_token: 'access_token'
     }}
 
     before do
@@ -270,16 +270,16 @@ describe Booker::V4::CustomerREST do
     end
 
     context 'other options' do
-      let(:options) {{'another_option' => 'foo'}}
+      let(:options) {{another_option: 'foo'}}
 
       let(:expected_params) {{
-        'FromStartDateTime' => '/Date(1438934400000)/',
-        'LocationID' => 10257,
-        'OnlyIfAvailable' => true,
-        'ToStartDateTime' => '/Date(1439020799000)/',
-        'ExcludeClosedDates' => true,
-        'access_token' => 'access_token',
-        'another_option' => 'foo'
+        FromStartDateTime: '/Date(1438934400000)/',
+        LocationID: 10257,
+        OnlyIfAvailable: true,
+        ToStartDateTime: '/Date(1439020799000)/',
+        ExcludeClosedDates: true,
+        access_token: 'access_token',
+        another_option: 'foo'
       }}
 
       it 'adds other options passed in to the params' do

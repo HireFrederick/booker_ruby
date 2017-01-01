@@ -2,11 +2,11 @@ module Booker
   module V5
     class Availability < Booker::Client
       API_METHODS = {
-        search: '/v5/availability/availability'.freeze
+        availability: '/v5/availability/availability'.freeze
       }.freeze
 
-      def search(location_ids:, from_date_time:, to_date_time:, include_employees: true)
-        get API_METHODS[:search], {
+      def availability(location_ids:, from_date_time:, to_date_time:, include_employees: true)
+        get API_METHODS[:availability], {
           locationIds: location_ids,
           fromDateTime: from_date_time,
           toDateTime: to_date_time,

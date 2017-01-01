@@ -21,11 +21,12 @@ module Booker
     DEFAULT_CONTENT_TYPE = 'application/json'.freeze
     ENV_BASE_URL_KEY = 'BOOKER_API_BASE_URL'.freeze
     DEFAULT_BASE_URL = 'https://api-staging.booker.com'.freeze
+    DEFAULT_AUTH_BASE_URL = 'https://api-staging.booker.com'
 
     def initialize(options = {})
       options.each { |key, value| send(:"#{key}=", value) }
       self.base_url ||= get_base_url
-      self.auth_base_url ||= ENV['BOOKER_API_BASE_URL'] || self.base_url
+      self.auth_base_url ||= ENV['BOOKER_API_BASE_URL'] || DEFAULT_AUTH_BASE_URL
       self.client_id ||= ENV['BOOKER_CLIENT_ID']
       self.client_secret ||= ENV['BOOKER_CLIENT_SECRET']
       self.api_subscription_key ||= ENV['BOOKER_API_SUBSCRIPTION_KEY']
@@ -65,15 +66,21 @@ module Booker
       build_resources(booker_resources, booker_model)
     end
 
-    def paginated_request(method:, path:, params:, model: nil, fetched: [], fetch_all: true)
-      page_size = params['PageSize']
-      page_number = params['PageNumber']
+    def delete(path, params=nil, body=nil, booker_model=nil)
+      booker_resources = get_booker_resources(:delete, path, params, body.to_json, booker_model)
 
-      if page_size.nil? || page_size < 1 || page_number.nil? || page_number < 1 || !params['UsePaging']
+      build_resources(booker_resources, booker_model)
+    end
+
+    def paginated_request(method:, path:, params:, model: nil, fetched: [], fetch_all: true)
+      page_size = params[:PageSize]
+      page_number = params[:PageNumber]
+
+      if page_size.nil? || page_size < 1 || page_number.nil? || page_number < 1 || !params[:UsePaging]
         raise ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging'
       end
 
-      puts "fetching #{path} with #{params.except('access_token')}. #{fetched.length} results so far."
+      puts "fetching #{path} with #{params.except(:access_token)}. #{fetched.length} results so far."
 
       results = self.send(method, path, params, model)
 
@@ -88,7 +95,7 @@ module Booker
         if results_length > 0
           # TODO (#111186744): Add logging to see if any pages with less than expected data (as seen in the /appointments endpoint)
           new_params = params.deep_dup
-          new_params['PageNumber'] = page_number + 1
+          new_params[:PageNumber] = page_number + 1
           paginated_request(method: method, path: path, params: new_params, model: model, fetched: fetched)
         else
           fetched

@@ -93,7 +93,8 @@ require 'booker/v5/models/availability_result'
 # Base Client
 require 'booker/client'
 
-# Rest
+# V4 Rest
+require 'booker/v4/request_helper'
 require 'booker/v4/common_rest'
 require 'booker/v4/business_rest'
 require 'booker/v4/customer_rest'
@@ -104,6 +105,9 @@ require 'booker/generic_token_store'
 # Client Subclasses
 require 'booker/v4/business_client'
 require 'booker/v4/customer_client'
+require 'booker/v4.1/availability'
+require 'booker/v4.1/booking'
+require 'booker/v4.1/merchant'
 require 'booker/v5/availability'
 
 # Helpers

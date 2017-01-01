@@ -16,96 +16,96 @@ module Booker
         # So datetime used for these fields does not matter
         random_datetime = Booker::V4::Models::Model.time_to_booker_datetime(Time.now)
 
-        additional_params = {'getDefaultDaySchedule' => true, 'fromDate' => random_datetime, 'toDate' => random_datetime}
+        additional_params = {getDefaultDaySchedule: true, fromDate: random_datetime, toDate: random_datetime}
         response = get("/location/#{booker_location_id}/schedule", build_params(additional_params, params))
         response['LocationDaySchedules'].map { |sched| Booker::V4::Models::LocationDaySchedule.from_hash(sched) }
       end
 
-      def find_locations(params: {})
+      def find_locations(options: {})
         paginated_request(
             method: :post,
             path: '/locations',
-            params: build_params({}, params, true),
+            params: build_params({}, options, true),
             model: Booker::V4::Models::Location
         )
       end
 
-      def find_employees(booker_location_id:, fetch_all: true, params: {})
+      def find_employees(booker_location_id:, fetch_all: true, options: {})
         paginated_request(
             method: :post,
             path: '/employees',
-            params: build_params({'LocationID' => booker_location_id}, params, true),
+            params: build_params({LocationID: booker_location_id}, options, true),
             model: Booker::V4::Models::Employee,
             fetch_all: fetch_all
         )
       end
 
-      def find_treatments(booker_location_id:, fetch_all: true, params: {})
+      def find_treatments(booker_location_id:, fetch_all: true, options: {})
         paginated_request(
             method: :post,
             path: '/treatments',
-            params: build_params({'LocationID' => booker_location_id}, params, true),
+            params: build_params({LocationID: booker_location_id}, options, true),
             model: Booker::V4::Models::Treatment,
             fetch_all: fetch_all
         )
       end
 
-      def find_customers(booker_location_id:, fetch_all: true, params: {})
+      def find_customers(booker_location_id:, fetch_all: true, options: {})
         additional_params = {
-            'FilterByExactLocationID' => true,
-            'LocationID' => booker_location_id,
-            'CustomerRecordType' => 1,
+          FilterByExactLocationID: true,
+          LocationID: booker_location_id,
+          CustomerRecordType: 1,
         }
 
         paginated_request(
             method: :post,
             path: '/customers',
-            params: build_params(additional_params, params, true),
+            params: build_params(additional_params, options, true),
             model: Booker::V4::Models::Customer,
             fetch_all: fetch_all
         )
       end
 
-      def find_appointments(booker_location_id:, start_date:, end_date:, fetch_all: true, params: {})
+      def find_appointments(booker_location_id:, start_date:, end_date:, fetch_all: true, options: {})
         additional_params = {
-            'LocationID' => booker_location_id,
-            'FromStartDate' => start_date.to_date,
-            'ToStartDate' => end_date.to_date
+          LocationID: booker_location_id,
+          FromStartDate: start_date.to_date,
+          ToStartDate: end_date.to_date
         }
 
         paginated_request(
             method: :post,
             path: '/appointments',
-            params: build_params(additional_params, params, true),
+            params: build_params(additional_params, options, true),
             model: Booker::V4::Models::Appointment,
             fetch_all: fetch_all
         )
       end
 
-      def find_appointments_partial(booker_location_id:, start_date:, end_date:, fetch_all: true, params: {})
+      def find_appointments_partial(booker_location_id:, start_date:, end_date:, fetch_all: true, options: {})
         additional_params = {
-          'LocationID' => booker_location_id,
-          'FromStartDate' => start_date.to_date,
-          'ToStartDate' => end_date.to_date
+          LocationID: booker_location_id,
+          FromStartDate: start_date.to_date,
+          ToStartDate: end_date.to_date
         }
 
         paginated_request(
           method: :post,
           path: '/appointments/partial',
-          params: build_params(additional_params, params, true),
+          params: build_params(additional_params, options, true),
           model: Booker::V4::Models::Appointment,
           fetch_all: fetch_all
         )
       end
 
-      def create_special(booker_location_id:, start_date:, end_date:, coupon_code:, name:, params: {})
+      def create_special(booker_location_id:, start_date:, end_date:, coupon_code:, name:, options: {})
         post('/special', build_params({
-              'LocationID' => booker_location_id,
-              'ApplicableStartDate' => start_date.in_time_zone,
-              'ApplicableEndDate' => end_date.in_time_zone,
-              'CouponCode' => coupon_code,
-              'Name' => name
-            }, params))
+          LocationID: booker_location_id,
+          ApplicableStartDate: start_date.in_time_zone,
+          ApplicableEndDate: end_date.in_time_zone,
+          CouponCode: coupon_code,
+          Name: name
+        }, options))
       end
 
       def get_location_notification_settings(booker_location_id:)

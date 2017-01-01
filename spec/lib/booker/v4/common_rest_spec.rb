@@ -12,7 +12,7 @@ describe Booker::V4::CommonREST do
     let(:options) {{}}
     let(:result) { client.get_online_booking_settings(booker_location_id: 10257) }
     let(:expected_params) {{
-      'access_token' => 'access_token'
+      access_token: 'access_token'
     }}
     let(:response) {{
       'OnlineBookingSettings' => {
@@ -35,12 +35,12 @@ describe Booker::V4::CommonREST do
     let(:options) {{}}
     let(:result) { client.confirm_appointment(appointment_id: 98864422) }
     let(:expected_params) {{
-      'ID' => 98864422,
-      'access_token' => 'access_token'
+      ID: 98864422,
+      access_token: 'access_token'
     }}
     let(:response) {{
-      'Appointment' => {
-        'ID' => 98864422
+      Appointment: {
+        ID: 98864422
       }
     }}
 
@@ -58,10 +58,10 @@ describe Booker::V4::CommonREST do
     let(:booker_location_id) { 123 }
     let(:result) { client.get_location(booker_location_id: booker_location_id) }
     let(:expected_params) {{
-      'access_token' => 'access_token'
+      access_token: 'access_token'
     }}
     let(:response) {{
-      'ID' => booker_location_id
+      ID: booker_location_id
     }}
 
     before do

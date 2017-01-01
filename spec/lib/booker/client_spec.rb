@@ -47,6 +47,8 @@ describe Booker::Client do
       expect(described_class::CREATE_TOKEN_PATH).to eq '/v5/auth/connect/token'
       expect(described_class::UPDATE_TOKEN_CONTEXT_PATH).to eq '/v5/auth/context/update'
       expect(described_class::VALID_ACCESS_TOKEN_SCOPES).to eq %w(public merchant parter-payment internal)
+      expect(described_class::DEFAULT_BASE_URL).to eq 'https://api-staging.booker.com'
+      expect(described_class::DEFAULT_AUTH_BASE_URL).to eq 'https://api-staging.booker.com'
       expect(described_class::API_GATEWAY_ERRORS).to eq({
         503 => Booker::ServiceUnavailable,
         504 => Booker::ServiceUnavailable,
@@ -65,11 +67,12 @@ describe Booker::Client do
       allow_any_instance_of(described_class).to receive(:token_scope)
                                                   .with(temp_access_token).and_return access_token_scope
     end
+    let(:env_base_url) { 'api base url from env' }
 
     before do
       allow(ENV).to receive(:[]).with('BOOKER_CLIENT_ID').and_return 'id from env'
       allow(ENV).to receive(:[]).with('BOOKER_CLIENT_SECRET').and_return 'secret from env'
-      allow(ENV).to receive(:[]).with('BOOKER_API_BASE_URL').and_return 'api base url from env'
+      allow(ENV).to receive(:[]).with('BOOKER_API_BASE_URL').and_return env_base_url
       allow(ENV).to receive(:[]).with('BOOKER_API_SUBSCRIPTION_KEY').and_return 'sub key from env'
       allow(ENV).to receive(:[]).with('BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS').and_return 'true'
     end
@@ -83,6 +86,14 @@ describe Booker::Client do
       expect(client.client_secret).to eq client_secret
       expect(client.auth_with_client_credentials).to be false
       expect(client.access_token_scope).to eq access_token_scope
+    end
+
+    context 'no BOOKER_API_BASE_URL in ENV' do
+      let(:env_base_url) { nil }
+
+      it 'sets default auth base url' do
+        expect(client.auth_base_url).to eq described_class::DEFAULT_AUTH_BASE_URL
+      end
     end
 
     context 'no access token or scope provided' do
@@ -216,15 +227,43 @@ describe Booker::Client do
     end
   end
 
+  describe '#delete' do
+    let(:http_party_options) {
+      {
+        headers: {
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json',
+          'Authorization' => "Bearer #{temp_access_token}",
+          'Ocp-Apim-Subscription-Key' => api_subscription_key
+        },
+        query: params,
+        body: post_data.to_json,
+        open_timeout: 120
+      }
+    }
+    let(:data) { {data: 'datum'} }
+    let(:params) { {foo: 'bar'} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
+    let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
+
+    it 'makes the request using the options given' do
+      expect(client).to receive(:get_booker_resources).with(:delete, '/blah/blah', params, post_data.to_json, Booker::V4::Models::Model).and_call_original
+      expect(HTTParty).to receive(:delete).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+      expect(resp).to receive(:success?).and_return(true)
+      expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
+      expect(client.delete('/blah/blah', params, post_data, Booker::V4::Models::Model)).to eq ['results']
+    end
+  end
+
   describe '#paginated_request' do
     let(:path) { '/appointments' }
 
     context 'valid params' do
       let(:params_1) do
         {
-            'UsePaging' => true,
-            'PageSize' => 3,
-            'PageNumber' => 1
+          UsePaging: true,
+          PageSize: 3,
+          PageNumber: 1
         }
       end
       let(:results) { [result_1, result_2, result_3] }
@@ -237,11 +276,11 @@ describe Booker::Client do
       before { expect(client).to receive(:send).with('method', path, params_1, Booker::V4::Models::Model).and_return(results) }
 
       context 'fetch all is true' do
-        let(:params_2) { params_1.merge('PageNumber' => (params_1['PageNumber'] + 1)) }
-        let(:params_3) { params_1.merge('PageNumber' => (params_1['PageNumber'] + 2)) }
+        let(:params_2) { params_1.merge(PageNumber: (params_1[:PageNumber] + 1)) }
+        let(:params_3) { params_1.merge(PageNumber: (params_1[:PageNumber] + 2)) }
         let(:result_4) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'Jim') }
         let(:result_5) { Booker::V4::Models::Customer.new(LocationID: 123, FirstName: 'John') }
-        let(:total_missing) { params_2['PageSize'] - results2.length }
+        let(:total_missing) { params_2[:PageSize] - results2.length }
         let(:raven_msg) { "Page of #{path} has less records then specified in page size. Ensure this is not last page of request" }
         let(:results2) { [result_4, result_5] }
         let(:results3) { [] }
@@ -273,9 +312,9 @@ describe Booker::Client do
       it 'invalid UsePaging' do
         [nil, false].each do |val|
           expect{client.paginated_request(method: 'method', path: path, params: {
-              'UsePaging' => val,
-              'PageSize' => page_size,
-              'PageNumber' => page_number
+            UsePaging: val,
+            PageSize: page_size,
+            PageNumber: page_number
             }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
@@ -283,19 +322,19 @@ describe Booker::Client do
       it 'invalid PageSize' do
         [nil, 0].each do |val|
           expect{client.paginated_request(method: 'method', path: path, params: {
-              'UsePaging' => use_paging,
-              'PageSize' => val,
-              'PageNumber' => page_number
-            }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
+            UsePaging: use_paging,
+            PageSize: val,
+            PageNumber: page_number
+          }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
 
       it 'invalid PageNumber' do
         [nil, 0].each do |val|
           expect{client.paginated_request(method: 'method', path: path, params: {
-              'UsePaging' => use_paging,
-              'PageSize' => page_size,
-              'PageNumber' => val
+            UsePaging: use_paging,
+            PageSize: page_size,
+            PageNumber: val
             }, model: Booker::V4::Models::Model)}.to raise_error(ArgumentError, 'params must include valid PageSize, PageNumber and UsePaging')
         end
       end
@@ -303,9 +342,9 @@ describe Booker::Client do
 
     context 'result is not a list' do
       let(:params) {{
-        'UsePaging' => true,
-        'PageSize' => 2,
-        'PageNumber' => 1
+        UsePaging: true,
+        PageSize: 2,
+        PageNumber: 1
       }}
 
       before do
@@ -313,7 +352,7 @@ describe Booker::Client do
       end
 
       it 'raises error' do
-        expect{client.paginated_request(method: 'method', path: path, params: params, model: Booker::V4::Models::Model)}.to raise_error(StandardError, "Result from paginated request to #{path} with params: {\"UsePaging\"=>true, \"PageSize\"=>2, \"PageNumber\"=>1} is not a collection")
+        expect{client.paginated_request(method: 'method', path: path, params: params, model: Booker::V4::Models::Model)}.to raise_error(StandardError, "Result from paginated request to #{path} with params: {:UsePaging=>true, :PageSize=>2, :PageNumber=>1} is not a collection")
       end
     end
   end
