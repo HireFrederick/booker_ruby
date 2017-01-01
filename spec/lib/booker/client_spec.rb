@@ -88,6 +88,38 @@ describe Booker::Client do
       expect(client.access_token_scope).to eq access_token_scope
     end
 
+    context 'token provided but has expired' do
+      let(:error) { JWT::ExpiredSignature.new }
+      let!(:jwt_stubs) do
+        allow_any_instance_of(described_class).to receive(:token_expires_at).and_raise error
+      end
+
+      it 'rescues and does not set options from the token' do
+        expect(client.temp_access_token).to eq temp_access_token
+        expect(client.temp_access_token_expires_at).to be_nil
+        expect(client.access_token_scope).to eq 'public'
+      end
+
+      context 'auth_with_client_credentials, no refresh_token' do
+        let(:auth_with_client_credentials) { true }
+        let(:refresh_token) { nil }
+
+        it 'rescues and does not set options from the token' do
+          expect(client.temp_access_token).to eq temp_access_token
+          expect(client.temp_access_token_expires_at).to be_nil
+          expect(client.access_token_scope).to eq 'public'
+        end
+      end
+
+      context 'neither refresh_token nor auth_with_client_credentials' do
+        let(:refresh_token) { nil }
+
+        it 'raises' do
+          expect{client}.to raise_error error
+        end
+      end
+    end
+
     context 'no BOOKER_API_BASE_URL in ENV' do
       let(:env_base_url) { nil }
 

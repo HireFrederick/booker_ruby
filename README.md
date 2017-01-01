@@ -1,6 +1,8 @@
 # Booker Ruby Client
 
-Client for the Booker v4 API. See http://apidoc.booker.com for method-level documentation.
+Client for the Booker API. See https://developers.booker.com for method-level documentation.
+
+**Important:** As of version 2.0 of this gem, support for API v4 methods has been removed. Use of v4 APIs should be migrated to the equivalent v4.1 or v5 methods available as part of Booker's new Developer Portal.
 
 [ ![Codeship Status for HireFrederick/booker_ruby](https://codeship.com/projects/a564c190-a133-0133-48cc-22cba843574f/status?branch=master)](https://codeship.com/projects/128449)
 
@@ -8,7 +10,7 @@ Client for the Booker v4 API. See http://apidoc.booker.com for method-level docu
 
 Add the gem to your Gemfile:
 
-`gem 'booker_ruby'`
+`gem 'booker_ruby', '~> 2.0.0'`
 
 Configuration may be specified via the environment or when initializing Booker::Client:
 
@@ -16,31 +18,43 @@ Configuring via environment variables:
 ```
 BOOKER_CLIENT_ID = YOUR_CLIENT_ID
 BOOKER_CLIENT_SECRET = YOUR_CLIENT_SECRET
-BOOKER_BUSINESS_SERVICE_URL = https://app.secure-booker.com/webservice4/json/BusinessService.svc
-BOOKER_CUSTOMER_SERVICE_URL = https://app.secure-booker.com/webservice4/json/CustomerService.svc
-BOOKER_DEFAULT_PAGE_SIZE = 10
+BOOKER_API_SUBSCRIPTION_KEY = YOUR API SUBSCRIPTION KEY
+BOOKER_API_BASE_URL = https://api.booker.com # Defaults to https://api-staging.booker.com
+BOOKER_DEFAULT_PAGE_SIZE = 10 # Default
 BOOKER_API_DEBUG = false # Set to true to print request details to the log
 ```
 
-To ease development, **the gem points to Booker's API Sandbox at apicurrent-app.booker.ninja by default**. For production, you must specify the service urls via the environment or when initializing Booker::Client.
+To ease development, **the gem points to Booker's API Sandbox at apicurrent-app.booker.ninja by default**.
+For production, you must set BOOKER_API_BASE_URL to https://api.booker.com.
 
 ## Using Booker::Client
 
-There are two client classes. **Booker::CustomerClient** is used to interact with the v4 CustomerService. **Booker::BusinessClient** is used to interact with the v4 BusinessService.
+A client subclass is available for each API:
+* [Booker::V5::Availability](lib/booker/v5/availability.rb)
+* [Booker::V41::Availability](lib/booker/v4.1/availability.rb)
+* [Booker::V41::Booking](lib/booker/v4.1/booking.rb)
+* [Booker::V41::Merchant](lib/booker/v4.1/merchant.rb)
 
-The client handles authorization and requesting new access tokens as needed.
+### Authentication
+
+The client supports both refresh_token and client_credentials authorization flows. If a `refresh_token` is provided
+or `auth_with_client_credentials` is set to `true`, the client will attempt to request a new access token as needed.
+
+If your API subscription permits, an access token and refresh token for a specific merchant may be retrieved via OAuth.
+
+Access token scopes:
+* An access token scope may be provided to instruct the client what type of token should be requested.
+You most likely want to use the `public` (default) or `merchant` scope depending on your use case.
 
 ```
-# Use BusinessClient to interact with the v4 BusinessService on behalf of a merchant
+# Use Booker::V41::Booking to look up a location's details
 
-business_client = Booker::BusinessClient.new(
-  booker_account_name: 'accountname',
-  booker_username: 'myusername',
-  booker_password: 'secret'
+client = Booker::V41::Booking.new(
+  temp_access_token: 'MY TOKEN',
+  refresh_token: 'MY REFRESH TOKEN'
 )
 
-logged_in_user = business_client.get_logged_in_user
-location = business_client.get_location(booker_location_id: logged_in_user.LocationID)
+location = client.location(id: 45678)
 
 location.ID
 # => 45678
@@ -48,41 +62,22 @@ location.ID
 location.BusinessName
 # => 'My Booker Spa'
 
-treatments = client.find_treatments(booker_location_id: location.ID)
+# Get available services
 
-# Use CustomerClient to interact with the v4 CustomerService as a consumer
+services = client.services(location_id: location.ID)
 
-customer_client = Booker::CustomerClient.new
-
-available_times = customer_client.run_multi_spa_multi_sub_category_availability(
-  booker_location_ids: [location.ID],
-  treatment_sub_category_ids: treatments.first.SubCategory.ID,
-  start_date_time: Time.zone.tomorrow.beginning_of_day,
-  end_date_time: Time.zone.tomorrow.end_of_day
-)
-
-first_result = available_times.first
-first_result_treatment = first_result.Treatment
-first_result_treatment.Name
-# => 60 Minute Swedish Massage
-
-first_available_time = first_result.AvailableTimes.first
-first_available_time.StartDateTime
-# => 2016-01-20 08:00:00 -0800
+# etc..
 ```
 
 ## Available Methods
 
-For available methods, see:
-* [common_rest.rb](lib/booker/common_rest.rb)
-* [business_rest.rb](lib/booker/business_rest.rb)
-* [customer_rest.rb](lib/booker/customer_rest.rb)
+For available methods, see the API documentation at https://developers.booker.com
+* If an API you want to use has not been added to this gem, please contribute via a Pull Request!
 
 ## Handling dates and times
 
-Booker's API expects all timestamps to be in their server's timezone offset, which is always US Eastern Time, as the API is not timezone aware. This gem handles all of this for you and will always provide Ruby `ActiveSupport::TimeWithZone` objects in your current `Time.zone`.
-
-ActiveSupport::TimeWithZone is a required dependency.
+* Booker's v5 API is timezone-aware. This gem will parse returned Dates and Times for you and they remain in the offset provided by Booker.
+* Booker's v4.1 API is not timezone-aware, so this gem will convert any date-time values from Booker into your current timezone offset per the thread-local `Time.zone`.
 
 ## Contributing
 

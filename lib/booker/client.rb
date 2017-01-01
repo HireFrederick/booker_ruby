@@ -34,8 +34,12 @@ module Booker
         self.auth_with_client_credentials = ENV['BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS'] == 'true'
       end
       if self.temp_access_token.present?
-        self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
-        self.access_token_scope = token_scope(self.temp_access_token)
+        begin
+          self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
+          self.access_token_scope = token_scope(self.temp_access_token)
+        rescue JWT::ExpiredSignature => ex
+          raise ex unless self.auth_with_client_credentials || self.refresh_token.present?
+        end
       end
       if self.access_token_scope.blank?
         self.access_token_scope = VALID_ACCESS_TOKEN_SCOPES.first
