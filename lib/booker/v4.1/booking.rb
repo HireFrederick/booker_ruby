@@ -1,6 +1,6 @@
 module Booker
   module V41
-    class Booking < Client
+    class Booking < Booker::Client
       include Booker::V4::RequestHelper
 
       API_METHODS = {

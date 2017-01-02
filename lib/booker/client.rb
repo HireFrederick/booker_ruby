@@ -255,6 +255,7 @@ module Booker
     private
       def request_options(query=nil, body=nil)
         options = {
+          # Headers must use stringified keys due to how they are transformed in some Net::HTTP versions
           headers: {
             'Content-Type' => DEFAULT_CONTENT_TYPE,
             'Accept' => DEFAULT_CONTENT_TYPE,
@@ -307,11 +308,15 @@ module Booker
       end
 
       def token_expires_at(token)
-        Time.at(JWT.decode(token, nil, false)[0]['exp'])
+        Time.at(decoded_token_info(token)['exp'])
       end
 
       def token_scope(token)
-        JWT.decode(token, nil, false)[0]['scope']
+        decoded_token_info(token)['scope']
+      end
+
+      def decoded_token_info(token)
+        JWT.decode(token, nil, false, verify_not_before: false)[0]
       end
   end
 end

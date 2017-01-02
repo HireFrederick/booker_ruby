@@ -1,6 +1,6 @@
 module Booker
   module V41
-    class Availability < Client
+    class Availability < Booker::Client
       include Booker::V4::RequestHelper
 
       API_METHODS = {

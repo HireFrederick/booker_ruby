@@ -939,4 +939,42 @@ describe Booker::Client do
       end
     end
   end
+
+  describe 'private #token_scope' do
+    let(:client) { described_class.new }
+    let(:token_scope) { 'scope' }
+    let(:info) { { 'scope' => token_scope } }
+    let(:token) { 'token' }
+    let!(:jwt_stubs) { expect(client).to receive(:decoded_token_info).with(token).and_return info  }
+
+    it 'parses exp from decoded token' do
+      expect(client.send(:token_scope, token)).to eq token_scope
+    end
+  end
+
+  describe 'private #token_expires_at' do
+    let(:client) { described_class.new }
+    let(:exp) { Time.parse('2017-01-01').to_i }
+    let(:info) { { 'exp' => exp } }
+    let(:token) { 'token' }
+    let!(:jwt_stubs) { expect(client).to receive(:decoded_token_info).with(token).and_return info  }
+
+    it 'parses exp from decoded token' do
+      expect(client.send(:token_expires_at, token)).to eq Time.parse('2017-01-01')
+    end
+  end
+
+  describe 'private #decoded_token_info' do
+    let(:info) { 'info' }
+    let(:decoded_token) { [info] }
+    let(:token) { 'token' }
+
+    before do
+      expect(JWT).to receive(:decode).with(token, nil, false, verify_not_before: false).and_return decoded_token
+    end
+
+    it 'JWT.decode' do
+      expect(client.send(:decoded_token_info, token)).to eq info
+    end
+  end
 end
