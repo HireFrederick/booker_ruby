@@ -212,7 +212,8 @@ module Booker
           'Content-Type' => CREATE_TOKEN_CONTENT_TYPE,
           'Ocp-Apim-Subscription-Key' => self.api_subscription_key
         },
-        body: body.to_query
+        body: body.to_query,
+        timeout: 30
       }
 
       url = "#{self.auth_base_url}#{CREATE_TOKEN_PATH}"
@@ -237,7 +238,7 @@ module Booker
         query: {
           locationId: location_id
         },
-        open_timeout: 120
+        timeout: 30
       }
       url = "#{self.auth_base_url}#{UPDATE_TOKEN_CONTEXT_PATH}"
 
@@ -262,7 +263,8 @@ module Booker
             'Authorization' => "Bearer #{access_token}",
             'Ocp-Apim-Subscription-Key' => self.api_subscription_key
           },
-          open_timeout: 120
+          open_timeout: 120,
+          read_timeout: 300
         }
 
         options[:body] = body if body.present?

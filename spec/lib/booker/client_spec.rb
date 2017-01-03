@@ -174,7 +174,8 @@ describe Booker::Client do
             'Ocp-Apim-Subscription-Key' => api_subscription_key
           },
           query: data,
-          open_timeout: 120
+          open_timeout: 120,
+          read_timeout: 300
       }
     }
     let(:data) { {data: 'datum'} }
@@ -205,7 +206,8 @@ describe Booker::Client do
           'Ocp-Apim-Subscription-Key' => api_subscription_key
         },
           body: post_data.to_json,
-          open_timeout: 120
+          open_timeout: 120,
+          read_timeout: 300
       }
     }
     let(:data) { {data: 'datum'} }
@@ -237,7 +239,8 @@ describe Booker::Client do
           'Ocp-Apim-Subscription-Key' => api_subscription_key
         },
         body: post_data.to_json,
-        open_timeout: 120
+        open_timeout: 120,
+        read_timeout: 300
       }
     }
     let(:data) { {data: 'datum'} }
@@ -270,7 +273,8 @@ describe Booker::Client do
         },
         query: params,
         body: post_data.to_json,
-        open_timeout: 120
+        open_timeout: 120,
+        read_timeout: 300
       }
     }
     let(:data) { {data: 'datum'} }
@@ -405,7 +409,8 @@ describe Booker::Client do
           },
           body: body,
           query: params,
-          open_timeout: 120
+          open_timeout: 120,
+          read_timeout: 300
       }
     end
     let(:path) { '/blah/blah' }
@@ -751,7 +756,8 @@ describe Booker::Client do
             client_id: client_id,
             client_secret: client_secret,
             scope: access_token_scope
-          }.to_query
+          }.to_query,
+          timeout: 30
         }
       end
       let(:resp) { instance_double(HTTParty::Response, success?: true, code: 201, parsed_response: {}) }
@@ -828,7 +834,8 @@ describe Booker::Client do
             client_secret: client_secret,
             scope: access_token_scope,
             refresh_token: refresh_token
-          }.to_query
+          }.to_query,
+          timeout: 30
         }
       end
       let(:resp) { instance_double(HTTParty::Response, success?: true, code: 201, parsed_response: {}) }
@@ -858,7 +865,7 @@ describe Booker::Client do
         query: {
           locationId: location_id
         },
-        open_timeout: 120
+        timeout: 30
       }
     end
     let(:new_token) { 'new token' }
