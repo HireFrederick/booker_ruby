@@ -38,7 +38,7 @@ A client subclass is available for each API:
 The client supports both refresh_token and client_credentials authorization flows. If a `refresh_token` is provided
 or `auth_with_client_credentials` is set to `true`, the client will attempt to request a new access token as needed.
 
-If your API subscription permits, an access token and refresh token for a specific merchant may be retrieved via OAuth.
+If your API subscription permits, an access token and refresh token for a specific merchant may be retrieved via OAuth. The [Booker OmniAuth Gem](https://github.com/hirefrederick/omniauth-booker) provides an OmniAuth strategy to make this easy for Rails/Rack-based apps.
 
 Access token scopes:
 * An access token scope may be provided to instruct the client what type of token should be requested.
