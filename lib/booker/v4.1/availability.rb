@@ -7,14 +7,14 @@ module Booker
         class_availability: '/v4.1/availability/availability/class'.freeze
       }.freeze
 
-      def class_availability(location_id:, from_start_date_time:, to_start_date_time:, options: {})
+      def class_availability(location_id:, from_start_date_time:, to_start_date_time:, params: {})
         post API_METHODS[:class_availability], build_params({
           FromStartDateTime: from_start_date_time,
           LocationID: location_id,
           OnlyIfAvailable: true,
           ToStartDateTime: to_start_date_time,
           ExcludeClosedDates: true
-        }, options), Booker::V4::Models::ClassInstance
+        }, params), Booker::V4::Models::ClassInstance
       end
     end
   end

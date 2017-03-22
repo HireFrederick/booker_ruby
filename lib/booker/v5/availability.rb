@@ -8,7 +8,7 @@ module Booker
         thirty_day_availability: '/v5/availability/30day'.freeze
       }.freeze
 
-      def availability(location_ids:, from_date_time:, to_date_time:, include_employees: true)
+      def date_range(location_ids:, from_date_time:, to_date_time:, include_employees: true)
         get API_METHODS[:availability], {
           locationIds: location_ids,
           fromDateTime: from_date_time,
@@ -17,7 +17,7 @@ module Booker
         }, Booker::V5::Models::AvailabilityResult
       end
 
-      def one_day_availability(location_id:, from_date_time:, include_employees: true)
+      def one_day(location_id:, from_date_time:, include_employees: true)
         get API_METHODS[:one_day_availability], {
           locationId: location_id,
           fromDateTime: from_date_time,
@@ -25,7 +25,7 @@ module Booker
         }, Booker::V5::Models::AvailabilityResult
       end
 
-      def two_day_availability(location_id:, from_date_time:, include_employees: true)
+      def two_day(location_id:, from_date_time:, include_employees: true)
         get API_METHODS[:two_day_availability], {
           locationId: location_id,
           fromDateTime: from_date_time,
@@ -33,7 +33,7 @@ module Booker
         }, Booker::V5::Models::AvailabilityResult
       end
 
-      def thirty_day_availability(location_id:, from_date_time:, include_employees: true)
+      def thirty_day(location_id:, from_date_time:, include_employees: true)
         get API_METHODS[:thirty_day_availability], {
           locationId: location_id,
           fromDateTime: from_date_time,

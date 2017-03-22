@@ -9,7 +9,7 @@ module Booker
       end
 
       def confirm_appointment(appointment_id:)
-        put '/appointment/confirm', build_params(:ID => appointment_id), Booker::V4::Models::Appointment
+        put '/appointment/confirm', build_params(ID: appointment_id), Booker::V4::Models::Appointment
       end
 
       def get_location(booker_location_id:)
