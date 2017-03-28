@@ -15,12 +15,12 @@ describe Booker::V41::Availability do
   it { is_expected.to be_a Booker::Client }
 
   describe '#run_class_availability' do
-    let(:options) {{}}
+    let(:params) {{}}
     let(:result) { client.class_availability(
       location_id: 10257,
       from_start_date_time: Time.zone.parse('2015-08-07 00:00:00 -0400'),
       to_start_date_time: Time.zone.parse('2015-08-07 23:59:59 -0400'),
-      options: options
+      params: params
     ) }
     let(:expected_params) {{
       FromStartDateTime: '/Date(1438934400000)/',
@@ -40,8 +40,8 @@ describe Booker::V41::Availability do
       expect(result).to eq []
     end
 
-    context 'other options' do
-      let(:options) {{another_option: 'foo'}}
+    context 'other params' do
+      let(:params) {{another_param: 'foo'}}
 
       let(:expected_params) {{
         FromStartDateTime: '/Date(1438934400000)/',
@@ -50,10 +50,10 @@ describe Booker::V41::Availability do
         ToStartDateTime: '/Date(1439020799000)/',
         ExcludeClosedDates: true,
         access_token: 'access_token',
-        another_option: 'foo'
+        another_param: 'foo'
       }}
 
-      it 'adds other options passed in to the params' do
+      it 'merges the params passed in with base params' do
         expect(result).to eq []
       end
     end

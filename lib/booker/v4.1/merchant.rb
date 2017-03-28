@@ -39,7 +39,7 @@ module Booker
 
       def update_location_notification_settings(location_id:, send_appointment_reminders:)
         params = build_params({NotificationSettings: { SendAppointmentReminders: send_appointment_reminders } })
-        put "/#{V41_LOCATION_PREFIX}/#{location_id}/notification_settings", params
+        put "#{V41_LOCATION_PREFIX}/#{location_id}/notification_settings", params
       end
 
       def confirm_appointment(appointment_id:)
@@ -62,11 +62,11 @@ module Booker
         )
       end
 
-      def employees(location_id:, fetch_all: true, options: {})
+      def employees(location_id:, fetch_all: true, params: {})
         paginated_request(
           method: :post,
           path: API_METHODS[:employees],
-          params: build_params({LocationID: location_id}, options, true),
+          params: build_params({LocationID: location_id}, params, true),
           model: Booker::V4::Models::Employee,
           fetch_all: fetch_all
         )
@@ -82,8 +82,8 @@ module Booker
         )
       end
 
-      def location(location_id:)
-        response = get("#{V41_LOCATION_PREFIX}/#{location_id}", build_params)
+      def location(id:)
+        response = get("#{V41_LOCATION_PREFIX}/#{id}", build_params)
         Booker::V4::Models::Location.from_hash(response)
       end
 

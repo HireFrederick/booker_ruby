@@ -4,11 +4,11 @@ describe Booker::V5::Availability do
   let(:client) { described_class.new }
   it { is_expected.to be_a(Booker::Client) }
 
-  describe '#availability' do
+  describe '#date_range' do
     let(:location_ids) { [456] }
     let(:from_date_time) { 'from_date_time' }
     let(:to_date_time) { 'to_date_time' }
-    let(:result) { client.availability(location_ids: location_ids, from_date_time: from_date_time, to_date_time: to_date_time) }
+    let(:result) { client.date_range(location_ids: location_ids, from_date_time: from_date_time, to_date_time: to_date_time) }
     let(:expected_params) {{
       locationIds: location_ids,
       fromDateTime: from_date_time,
@@ -28,11 +28,11 @@ describe Booker::V5::Availability do
     end
   end
 
-  describe '#one_day_availability' do
+  describe '#one_day' do
     let(:location_id) { 456 }
     let(:from_date_time) { 'from_date_time' }
     let(:to_date_time) { 'to_date_time' }
-    let(:result) { client.one_day_availability(location_id: location_id, from_date_time: from_date_time) }
+    let(:result) { client.one_day(location_id: location_id, from_date_time: from_date_time) }
     let(:expected_params) {{
       locationId: location_id,
       fromDateTime: from_date_time,
@@ -51,11 +51,11 @@ describe Booker::V5::Availability do
     end
   end
 
-  describe '#two_day_availability' do
+  describe '#two_day' do
     let(:location_id) { 456 }
     let(:from_date_time) { 'from_date_time' }
     let(:to_date_time) { 'to_date_time' }
-    let(:result) { client.two_day_availability(location_id: location_id, from_date_time: from_date_time) }
+    let(:result) { client.two_day(location_id: location_id, from_date_time: from_date_time) }
     let(:expected_params) {{
       locationId: location_id,
       fromDateTime: from_date_time,
@@ -74,11 +74,11 @@ describe Booker::V5::Availability do
     end
   end
 
-  describe '#thirty_day_availability' do
+  describe '#thirty_day' do
     let(:location_id) { 456 }
     let(:from_date_time) { 'from_date_time' }
     let(:to_date_time) { 'to_date_time' }
-    let(:result) { client.thirty_day_availability(location_id: location_id, from_date_time: from_date_time) }
+    let(:result) { client.thirty_day(location_id: location_id, from_date_time: from_date_time) }
     let(:expected_params) {{
       locationId: location_id,
       fromDateTime: from_date_time,

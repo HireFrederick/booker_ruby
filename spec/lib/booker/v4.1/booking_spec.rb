@@ -12,6 +12,29 @@ describe Booker::V41::Booking do
 
   before { allow(client).to receive(:access_token).and_return 'access_token' }
 
+  describe 'constants' do
+    let(:v41_prefix) { '/v4.1/booking' }
+    let(:v41_appointments_prefix) { '/v4.1/booking/appointment' }
+    let(:api_methods) do
+      {
+        appointment: "#{v41_appointments_prefix}",
+        cancel_appointment: "#{v41_appointments_prefix}/cancel",
+        create_appointment: "#{v41_appointments_prefix}/create",
+        appointment_hold: "#{v41_appointments_prefix}/hold",
+        employees: "#{v41_prefix}/employees",
+        services: "#{v41_prefix}/services",
+        location: "#{v41_prefix}/location",
+        locations: "#{v41_prefix}/locations"
+      }
+    end
+
+    it 'get set to the correct values' do
+      expect(described_class::V41_PREFIX).to eq('/v4.1/booking')
+      expect(described_class::V41_APPOINTMENTS_PREFIX).to eq('/v4.1/booking/appointment')
+      expect(described_class::API_METHODS).to eq(api_methods)
+    end
+  end
+
   describe '#appointment' do
     let(:expected_params) { {access_token: 'access_token' } }
 
@@ -39,7 +62,7 @@ describe Booker::V41::Booking do
     end
 
     it 'returns appointment' do
-      expect(client.cancel_appointment(id: 123, options: {another_option: 'foo'})).to be response
+      expect(client.cancel_appointment(id: 123, params: {another_option: 'foo'})).to be response
     end
   end
 
@@ -88,8 +111,8 @@ describe Booker::V41::Booking do
       expect(result).to be_a Booker::V4::Models::Appointment
     end
 
-    context 'other options' do
-      let(:options) {{another_option: 'foo'}}
+    context 'other params' do
+      let(:params) {{another_option: 'foo'}}
 
       let(:expected_params) {{
         LocationID: 10257,
@@ -98,14 +121,14 @@ describe Booker::V41::Booking do
         ],
         Customer: customer,
         access_token: 'access_token',
-      }.merge(options)}
+      }.merge(params)}
       let(:result) do
         client.create_appointment(
-          location_id: 10257, available_time: available_time, customer: customer, options: options
+          location_id: 10257, available_time: available_time, customer: customer, params: params
         )
       end
 
-      it 'adds other options passed in to the params' do
+      it 'merges passed in params into base params' do
         expect(result).to be_a Booker::V4::Models::Appointment
       end
     end
@@ -156,8 +179,8 @@ describe Booker::V41::Booking do
       expect(result).to be response
     end
 
-    context 'other options' do
-      let(:options) {{another_option: 'foo'}}
+    context 'other params' do
+      let(:params) {{another_option: 'foo'}}
 
       let(:expected_params) {{
         LocationID: 10257,
@@ -166,14 +189,14 @@ describe Booker::V41::Booking do
         },
         Customer: customer,
         access_token: 'access_token',
-      }.merge(options)}
+      }.merge(params)}
       let(:result) do
         client.create_appointment_hold(
-          location_id: 10257, available_time: available_time, customer: customer, options: options
+          location_id: 10257, available_time: available_time, customer: customer, params: params
         )
       end
 
-      it 'adds other options passed in to the params' do
+      it 'merges passed in params into base params' do
         expect(result).to be response
       end
     end
@@ -200,15 +223,15 @@ describe Booker::V41::Booking do
       expect(client.employees(location_id: booker_location_id)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         LocationID: booker_location_id,
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.employees(location_id: booker_location_id, options: {another_option: 'foo'})).to eq []
+      it 'merges passed in params into base params' do
+        expect(client.employees(location_id: booker_location_id, params: {another_option: 'foo'})).to eq []
       end
     end
   end
@@ -253,14 +276,14 @@ describe Booker::V41::Booking do
       expect(client.locations).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.locations(options: {another_option: 'foo'})).to eq []
+      it 'merges passed in params into base params' do
+        expect(client.locations(params: {another_option: 'foo'})).to eq []
       end
     end
   end
@@ -286,14 +309,14 @@ describe Booker::V41::Booking do
       expect(client.services(location_id: booker_location_id)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         LocationID: booker_location_id,
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
+      it 'merges passed in params into base params' do
         expect(client.services(location_id: booker_location_id, params: {another_option: 'foo'})).to eq []
       end
     end
