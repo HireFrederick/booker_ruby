@@ -9,17 +9,18 @@ describe Booker::V41::Booking do
   end
   let(:booker_location_id) { 10257 }
   let(:response) { 'resp' }
+  let(:v41_prefix) { '/v4.1/booking' }
+  let(:v41_appointments_prefix) { '/v4.1/booking/appointment' }
 
   before { allow(client).to receive(:access_token).and_return 'access_token' }
 
   describe 'constants' do
-    let(:v41_prefix) { '/v4.1/booking' }
-    let(:v41_appointments_prefix) { '/v4.1/booking/appointment' }
     let(:api_methods) do
       {
         appointment: "#{v41_appointments_prefix}",
         cancel_appointment: "#{v41_appointments_prefix}/cancel",
         create_appointment: "#{v41_appointments_prefix}/create",
+        create_class_appointment: "#{v41_prefix}/class_appointment/create",
         appointment_hold: "#{v41_appointments_prefix}/hold",
         employees: "#{v41_prefix}/employees",
         services: "#{v41_prefix}/services",
@@ -63,6 +64,56 @@ describe Booker::V41::Booking do
 
     it 'returns appointment' do
       expect(client.cancel_appointment(id: 123, params: {another_option: 'foo'})).to be response
+    end
+  end
+
+  describe '#create_class_appointment' do
+    let(:customer) { Booker::V4::Models::Customer.new(
+      Address: Booker::V4::Models::Address.new(
+        Street1: '680 Mission St',
+        Street2: 'Apt 123',
+        City: 'San Francisco',
+        State: 'CA',
+        Zip: '94105'
+      ),
+      DateOfBirth: Date.parse('1982-01-21'),
+      Email: 'testasevers@example.com',
+      FirstName: 'Aaron',
+      LastName: 'Severs',
+      GenderID: 1,
+      MobilePhone: '555-555-5555',
+      SendEmail: true
+    ) }
+    let(:result) { client.create_class_appointment(location_id: 10257, class_instance_id: 3944336, customer: customer) }
+    let(:expected_params) {{
+      LocationID: 10257,
+      ClassInstanceID: 3944336,
+      Customer: customer,
+      access_token: 'access_token'
+    }}
+
+    before do
+      expect(client).to receive(:post).with("#{v41_prefix}/class_appointment/create", expected_params, Booker::V4::Models::Appointment).and_return(Booker::V4::Models::Appointment.new)
+    end
+
+    it 'returns the appointment' do
+      expect(result).to be_a Booker::V4::Models::Appointment
+    end
+
+    context 'other options' do
+      let(:params) {{another_params: 'foo'}}
+
+      let(:expected_params) {{
+        LocationID: 10257,
+        ClassInstanceID: 3944336,
+        Customer: customer,
+        access_token: 'access_token',
+      }.merge(params)}
+      let(:result) { client.create_class_appointment(location_id: 10257, class_instance_id: 3944336, customer: customer, params: params) }
+
+      it 'adds other options passed in to the params' do
+        expect(result).to be_a Booker::V4::Models::Appointment
+      end
     end
   end
 

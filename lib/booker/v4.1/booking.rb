@@ -9,6 +9,7 @@ module Booker
         appointment: "#{V41_APPOINTMENTS_PREFIX}".freeze,
         cancel_appointment: "#{V41_APPOINTMENTS_PREFIX}/cancel".freeze,
         create_appointment: "#{V41_APPOINTMENTS_PREFIX}/create".freeze,
+        create_class_appointment: "#{V41_PREFIX}/class_appointment/create".freeze,
         appointment_hold: "#{V41_APPOINTMENTS_PREFIX}/hold".freeze,
         employees: "#{V41_PREFIX}/employees".freeze,
         services: "#{V41_PREFIX}/services".freeze,
@@ -22,6 +23,14 @@ module Booker
 
       def cancel_appointment(id:, params: {})
         put API_METHODS[:cancel_appointment], build_params({ID: id}, params), Booker::V4::Models::Appointment
+      end
+
+      def create_class_appointment(location_id:, class_instance_id:, customer:, params: {})
+        post API_METHODS[:create_class_appointment], build_params({
+                                                         LocationID: location_id,
+                                                         ClassInstanceID: class_instance_id,
+                                                         Customer: customer
+                                                       }, params), Booker::V4::Models::Appointment
       end
 
       def create_appointment(location_id:, available_time:, customer:, params: {})
