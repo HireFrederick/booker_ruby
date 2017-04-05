@@ -8,7 +8,7 @@ module Booker
         thirty_day_availability: '/v5/availability/30day'.freeze
       }.freeze
 
-      def date_range(location_ids:, from_date_time:, to_date_time:, include_employees: true)
+      def search(location_ids:, from_date_time:, to_date_time:, include_employees: true)
         get API_METHODS[:availability], {
           locationIds: location_ids,
           fromDateTime: from_date_time,

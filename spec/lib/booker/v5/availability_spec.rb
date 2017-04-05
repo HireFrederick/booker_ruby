@@ -4,11 +4,11 @@ describe Booker::V5::Availability do
   let(:client) { described_class.new }
   it { is_expected.to be_a(Booker::Client) }
 
-  describe '#date_range' do
+  describe '#search' do
     let(:location_ids) { [456] }
     let(:from_date_time) { 'from_date_time' }
     let(:to_date_time) { 'to_date_time' }
-    let(:result) { client.date_range(location_ids: location_ids, from_date_time: from_date_time, to_date_time: to_date_time) }
+    let(:result) { client.search(location_ids: location_ids, from_date_time: from_date_time, to_date_time: to_date_time) }
     let(:expected_params) {{
       locationIds: location_ids,
       fromDateTime: from_date_time,
