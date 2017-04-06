@@ -37,6 +37,7 @@ module Booker
         'DateBooked',
         'DateNoShow',
         'Employee',
+        'EmployeeID',
         'EmployeeFirstName',
         'EmployeeLastName',
         'GroupID',

@@ -38,6 +38,7 @@ describe Booker::Models::Appointment do
       'DateBooked',
       'DateNoShow',
       'Employee',
+      'EmployeeID',
       'EmployeeFirstName',
       'EmployeeLastName',
       'GroupID',
