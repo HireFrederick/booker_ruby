@@ -35,7 +35,7 @@ A client subclass is available for each API:
 
 ### Authentication
 
-The client supports both refresh_token and client_credentials authorization flows. If a `refresh_token` is provided
+The client supports both refresh token and client credentials authorization flows. If a `refresh_token` is provided
 or `auth_with_client_credentials` is set to `true`, the client will attempt to request a new access token as needed.
 
 If your API subscription permits, an access token and refresh token for a specific merchant may be retrieved via OAuth. The [Booker OmniAuth Gem](https://github.com/hirefrederick/omniauth-booker) provides an OmniAuth strategy to make this easy for Rails/Rack-based apps.
@@ -65,6 +65,41 @@ location.BusinessName
 services = client.services(location_id: location.ID)
 
 # etc..
+```
+
+Here's an example of a client instantiated to use `client_credentials` auth flow:
+```
+client = Booker::V41::Booking.new(
+      client_id: 'your client id',
+      client_secret: 'your client secret',
+      api_subscription_key: 'your api subscription key',
+      auth_with_client_credentials: true,
+      access_token_scope: 'merchant'
+)
+```
+
+
+If you want to get location specific authentication you can add the following client options: `{ location_id: 'the booker location id' }`
+
+If you want to store the `temp_access_token`, you can add the `token_store` and `token_store_callback_method` client options: 
+
+```
+module IStoreTempAccessToken
+  def self.store_temp_access_token_method(token, expires_at)
+    # => store token and expires at if you want
+  end
+  
+  def get_stored_temp_access_token
+    # => get stored token
+  end
+end
+
+client = Booker::V41::Booking.new(
+  temp_access_token: IStoreTempAccessToken.get_stored_temp_access_token,
+  refresh_token: 'MY REFRESH TOKEN',
+  token_store: IStoreTempAccessToken,
+  token_store_callback_method: :store_temp_access_token_method,     
+)
 ```
 
 ## Available Methods
