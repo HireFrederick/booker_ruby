@@ -1,5 +1,7 @@
 # Booker Ruby Client
 
+[ ![Codeship Status for HireFrederick/booker_ruby](https://app.codeship.com/projects/a564c190-a133-0133-48cc-22cba843574f/status?branch=master)](https://app.codeship.com/projects/128449)
+
 Client for the Booker API. See https://developers.booker.com for method-level documentation.
 
 **Important:** As of version 2.0 of this gem, support for API v4 methods has been removed. Use of v4 APIs should be migrated to the equivalent v4.1 or v5 methods available as part of Booker's new Developer Portal.

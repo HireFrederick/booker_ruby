@@ -9,3 +9,5 @@
 /tmp/
 /.idea/
 *.gem
+codeship.aes
+*.env
