@@ -10,7 +10,7 @@ Client for the Booker API. See https://developers.booker.com for method-level do
 
 Add the gem to your Gemfile:
 
-`gem 'booker_ruby', '~> 3.0.0'`
+`gem 'booker_ruby', '~> 3.0'`
 
 Configuration may be specified via the environment or when initializing Booker::Client:
 
@@ -31,8 +31,7 @@ For production, you must set BOOKER_API_BASE_URL to https://api.booker.com.
 
 A client subclass is available for each API:
 * [Booker::V5::Availability](lib/booker/v5/availability.rb)
-* [Booker::V41::Availability](lib/booker/v4.1/availability.rb)
-* [Booker::V41::Booking](lib/booker/v4.1/booking.rb)
+* [Booker::V41::Customer](lib/booker/v4.1/customer.rb)
 * [Booker::V41::Merchant](lib/booker/v4.1/merchant.rb)
 
 ### Authentication
@@ -49,7 +48,7 @@ You most likely want to use the `public` (default) or `merchant` scope depending
 ```
 # Use Booker::V41::Booking to look up a location's details
 
-client = Booker::V41::Booking.new(
+client = Booker::V41::Customer.new(
   temp_access_token: 'MY TOKEN',
   refresh_token: 'MY REFRESH TOKEN'
 )
@@ -64,14 +63,14 @@ location.BusinessName
 
 # Get available services
 
-services = client.services(location_id: location.ID)
+services = client.treatments(location_id: location.ID)
 
 # etc..
 ```
 
 Here's an example of a client instantiated to use `client_credentials` auth flow:
 ```
-client = Booker::V41::Booking.new(
+client = Booker::V41::Customer.new(
       client_id: 'your client id',
       client_secret: 'your client secret',
       api_subscription_key: 'your api subscription key',

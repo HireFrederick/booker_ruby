@@ -1,20 +1,20 @@
 module Booker
   module V41
-    class Booking < Booker::Client
+    class Customer < Booker::Client
       include Booker::V4::RequestHelper
 
-      V41_PREFIX = '/v4.1/booking'
+      V41_PREFIX = '/v4.1/customer'
       V41_APPOINTMENTS_PREFIX = "#{V41_PREFIX}/appointment"
       API_METHODS = {
         appointment: "#{V41_APPOINTMENTS_PREFIX}".freeze,
         cancel_appointment: "#{V41_APPOINTMENTS_PREFIX}/cancel".freeze,
         create_appointment: "#{V41_APPOINTMENTS_PREFIX}/create".freeze,
         create_class_appointment: "#{V41_PREFIX}/class_appointment/create".freeze,
-        appointment_hold: "#{V41_APPOINTMENTS_PREFIX}/hold".freeze,
         employees: "#{V41_PREFIX}/employees".freeze,
-        services: "#{V41_PREFIX}/services".freeze,
+        treatments: "#{V41_PREFIX}/treatments".freeze,
         location: "#{V41_PREFIX}/location".freeze,
-        locations: "#{V41_PREFIX}/locations".freeze
+        locations: "#{V41_PREFIX}/locations".freeze,
+        class_availability: "#{V41_PREFIX}/availability/class".freeze
       }.freeze
 
       def appointment(id:)
@@ -43,29 +43,22 @@ module Booker
         }, params), Booker::V4::Models::Appointment
       end
 
-      def create_appointment_hold(location_id:, available_time:, customer:, params: {})
-        post API_METHODS[:appointment_hold], build_params({
-          LocationID: location_id,
-          ItineraryTimeSlot: {
-            TreatmentTimeSlots: [available_time]
-          },
-          Customer: customer
-        }, params)
-      end
-
-      def delete_appointment_hold(location_id:, incomplete_appointment_id:)
-        delete API_METHODS[:appointment_hold], nil, build_params({
-          LocationID: location_id,
-          IncompleteAppointmentID: incomplete_appointment_id
-        })
-      end
-
       def employees(location_id:, fetch_all: true, params: {})
         paginated_request(
           method: :post,
           path: API_METHODS[:employees],
           params: build_params({LocationID: location_id}, params, true),
           model: Booker::V4::Models::Employee,
+          fetch_all: fetch_all
+        )
+      end
+
+      def treatments(location_id:, fetch_all: true, params: {})
+        paginated_request(
+          method: :post,
+          path: API_METHODS[:treatments],
+          params: build_params({LocationID: location_id}, params, true),
+          model: Booker::V4::Models::Treatment,
           fetch_all: fetch_all
         )
       end
@@ -84,14 +77,14 @@ module Booker
         )
       end
 
-      def services(location_id:, fetch_all: true, params: {})
-        paginated_request(
-          method: :post,
-          path: API_METHODS[:services],
-          params: build_params({LocationID: location_id}, params, true),
-          model: Booker::V4::Models::Treatment,
-          fetch_all: fetch_all
-        )
+      def class_availability(location_id:, from_start_date_time:, to_start_date_time:, params: {})
+        post API_METHODS[:class_availability], build_params({
+          FromStartDateTime: from_start_date_time,
+          LocationID: location_id,
+          OnlyIfAvailable: true,
+          ToStartDateTime: to_start_date_time,
+          ExcludeClosedDates: true
+        }, params), Booker::V4::Models::ClassInstance
       end
     end
   end

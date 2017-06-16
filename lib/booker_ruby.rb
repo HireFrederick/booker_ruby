@@ -105,8 +105,7 @@ require 'booker/generic_token_store'
 # Client Subclasses
 require 'booker/v4/business_client'
 require 'booker/v4/customer_client'
-require 'booker/v4.1/availability'
-require 'booker/v4.1/booking'
+require 'booker/v4.1/customer'
 require 'booker/v4.1/merchant'
 require 'booker/v5/availability'
 
