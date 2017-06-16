@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.name          = 'booker_ruby'
   s.version       = Booker::VERSION
   s.authors     = ['Frederick']
-  s.email       = ['friends@hirefrederick.com']
+  s.email       = ['tech@hirefrederick.com']
   s.homepage    = 'https://github.com/hirefrederick/booker_ruby'
   s.summary       = %q{
     Ruby client for the Booker API - https://developers.booker.com
@@ -17,9 +17,9 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.files       = Dir['{lib}/**/*', 'MIT-LICENSE']
 
-  s.add_dependency 'httparty', '~> 0.14'
+  s.add_dependency 'httparty', '>= 0.14'
   s.add_dependency 'activesupport', '>= 3.0.0'
-  s.add_dependency 'oj', '~> 2.10'
+  s.add_dependency 'oj'
   s.add_dependency 'jwt', '~> 1.5'
 
   s.add_development_dependency 'bundler', '>= 1.10'
