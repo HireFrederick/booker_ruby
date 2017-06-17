@@ -230,7 +230,6 @@ module Booker
     def get_location_access_token(existing_token, location_id)
       options = {
         headers: {
-          'Content-Type' => DEFAULT_CONTENT_TYPE,
           'Accept' => 'application/json',
           'Authorization' => "Bearer #{existing_token}",
           'Ocp-Apim-Subscription-Key' => self.api_subscription_key

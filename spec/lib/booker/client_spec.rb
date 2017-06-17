@@ -858,7 +858,6 @@ describe Booker::Client do
       {
         headers: {
           'Ocp-Apim-Subscription-Key' => api_subscription_key,
-          'Content-Type' => 'application/json',
           'Accept' => 'application/json',
           'Authorization' => "Bearer #{original_token}"
         },
