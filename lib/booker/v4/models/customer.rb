@@ -40,13 +40,9 @@ module Booker
                       'PreferredStaffMemberID',
                       'ReferredByCustomerID'
 
-        def self.from_list(array)
-          if array.any? && array.first['Customer']
-            flattened = array.map{|a| a['Customer'].merge('CustomerID' => a['CustomerID'])}
-            super(flattened)
-          else
-            super
-          end
+        def self.from_hash(hash)
+          return super unless hash['Customer'].is_a?(Hash)
+          super(hash['Customer'].merge('CustomerID' => hash['CustomerID']))
         end
       end
     end

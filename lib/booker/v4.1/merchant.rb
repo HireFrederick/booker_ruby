@@ -119,6 +119,11 @@ module Booker
         )
       end
 
+      def customer(id:)
+        response = get("#{V41_PREFIX}/customer/#{id}", build_params)
+        Booker::V4::Models::Customer.from_hash(response)
+      end
+
       def create_special(location_id:, start_date:, end_date:, coupon_code:, name:, params: {})
         post(API_METHODS[:create_special], build_params({
           LocationID: location_id,

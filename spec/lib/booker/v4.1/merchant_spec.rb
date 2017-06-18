@@ -377,6 +377,22 @@ describe Booker::V41::Merchant do
     end
   end
 
+  describe '#customer' do
+    let(:path) { "#{v41_prefix}/customer/#{customer_id}" }
+    let(:customer_id) { 123 }
+    let(:response_key) { 'CustomerID' }
+
+    after do
+      expect(client.customer(id: customer_id)).to be_a Booker::V4::Models::Customer
+    end
+
+    it 'calls get and returns the modeled response' do
+      expect(client).to receive(:build_params).with(no_args).and_call_original
+      expect(client).to receive(:get).with(path, base_params).and_return(nested_resp)
+      expect(Booker::V4::Models::Customer).to receive(:from_hash).with(nested_resp).and_call_original
+    end
+  end
+
   describe '#create_special' do
     let(:start_date) { Time.zone.at(1438660800) }
     let(:end_date) { Time.zone.at(1438747199) }
