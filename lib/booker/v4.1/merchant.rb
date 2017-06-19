@@ -119,8 +119,12 @@ module Booker
         )
       end
 
-      def customer(id:)
-        response = get("#{V41_PREFIX}/customer/#{id}", build_params)
+      def customer(id:, params: {})
+        additional_params = {
+          LoadUnpaidAppointments: false,
+          includeFieldValues: false
+        }
+        response = get("#{V41_PREFIX}/customer/#{id}", build_params(additional_params, params))
         Booker::V4::Models::Customer.from_hash(response)
       end
 
