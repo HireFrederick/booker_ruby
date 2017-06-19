@@ -124,8 +124,9 @@ module Booker
           LoadUnpaidAppointments: false,
           includeFieldValues: false
         }
-        response = get("#{V41_PREFIX}/customer/#{id}", build_params(additional_params, params))
-        Booker::V4::Models::Customer.from_hash(response)
+        response = get("#{V41_PREFIX}/customer/#{id}",
+                       build_params(additional_params, params),
+                       Booker::V4::Models::Customer)
       end
 
       def create_special(location_id:, start_date:, end_date:, coupon_code:, name:, params: {})

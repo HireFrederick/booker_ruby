@@ -380,30 +380,28 @@ describe Booker::V41::Merchant do
   describe '#customer' do
     let(:path) { "#{v41_prefix}/customer/#{customer_id}" }
     let(:customer_id) { 123 }
-    let(:response_key) { 'CustomerID' }
     let(:default_params) do
       {
         LoadUnpaidAppointments: false,
         includeFieldValues: false
       }
     end
-
-    before do
-      expect(Booker::V4::Models::Customer).to receive(:from_hash).with(nested_resp).and_call_original
-    end
+    let(:customer) { instance_double(Booker::V4::Models::Customer) }
 
     it 'calls get and returns the modeled response' do
       expect(client).to receive(:build_params).with(default_params, {}).and_call_original
-      expect(client).to receive(:get).with(path, base_params.merge(default_params)).and_return(nested_resp)
-      expect(client.customer(id: customer_id)).to be_a Booker::V4::Models::Customer
+      expect(client).to receive(:get)
+        .with(path, base_params.merge(default_params), Booker::V4::Models::Customer).and_return(customer)
+      expect(client.customer(id: customer_id)).to be customer
     end
 
     context 'additional params' do
       it 'merges passed params into base params' do
         expect(client).to receive(:build_params).with(default_params, {foo: 'bar'}).and_call_original
-        expect(client).to receive(:get).with(path, base_params.merge(default_params).merge({foo: 'bar'}))
-                              .and_return(nested_resp)
-        expect(client.customer(id: customer_id, params: {foo: 'bar'})).to be_a Booker::V4::Models::Customer
+        expect(client).to receive(:get)
+          .with(path, base_params.merge(default_params).merge({foo: 'bar'}), Booker::V4::Models::Customer)
+          .and_return(customer)
+        expect(client.customer(id: customer_id, params: {foo: 'bar'})).to be customer
       end
     end
   end
