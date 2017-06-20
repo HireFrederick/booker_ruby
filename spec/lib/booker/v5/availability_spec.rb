@@ -26,6 +26,31 @@ describe Booker::V5::Availability do
     it 'delegates to get and returns' do
       expect(result).to be response
     end
+
+    context 'with a service id specified' do
+      let(:service_id) { 'service_id' }
+      let(:expected_params) do
+        {
+          locationIds: location_ids,
+          fromDateTime: from_date_time,
+          toDateTime: to_date_time,
+          includeEmployees: true,
+          serviceId: service_id
+        }
+      end
+      let(:result) do
+        client.search(
+          location_ids: location_ids,
+          from_date_time: from_date_time,
+          to_date_time: to_date_time,
+          service_id: service_id
+        )
+      end
+
+      it 'delegates to get and returns' do
+        expect(result).to be response
+      end
+    end
   end
 
   describe '#two_day' do

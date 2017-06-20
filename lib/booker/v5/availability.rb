@@ -7,13 +7,15 @@ module Booker
         thirty_day_availability: '/v5/availability/30day'.freeze
       }.freeze
 
-      def search(location_ids:, from_date_time:, to_date_time:, include_employees: true)
-        get API_METHODS[:availability], {
+      def search(location_ids:, from_date_time:, to_date_time:, include_employees: true, service_id: nil)
+        params = {
           locationIds: location_ids,
           fromDateTime: from_date_time,
           toDateTime: to_date_time,
           includeEmployees: include_employees
-        }, Booker::V5::Models::AvailabilityResult
+        }
+        params[:serviceId] = service_id if service_id
+        get API_METHODS[:availability], params, Booker::V5::Models::AvailabilityResult
       end
 
       def two_day(location_id:, from_date_time:, include_employees: true)
