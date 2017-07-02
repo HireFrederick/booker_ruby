@@ -63,7 +63,7 @@ describe Booker::V4::CustomerREST do
           :'Customer' => customer,
           :'access_token' => 'access_token',
       }.merge(options)}
-      let(:result) { client.create_appointment(booker_location_id: 10257, available_time: available_time, customer: customer, options: options) }
+      let(:result) { client.create_appointment(booker_location_id: 10257, available_time: available_time, customer: customer, params: options) }
 
       it 'adds other options passed in to the params' do
         expect(result).to be_a Booker::V4::Models::Appointment
@@ -114,7 +114,7 @@ describe Booker::V4::CustomerREST do
         Customer: customer,
         access_token: 'access_token',
       }.merge(options)}
-      let(:result) { client.create_class_appointment(booker_location_id: 10257, class_instance_id: 3944336, customer: customer, options: options) }
+      let(:result) { client.create_class_appointment(booker_location_id: 10257, class_instance_id: 3944336, customer: customer, params: options) }
 
       it 'adds other options passed in to the params' do
         expect(result).to be_a Booker::V4::Models::Appointment

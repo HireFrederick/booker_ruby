@@ -109,8 +109,8 @@ describe Booker::V4::BusinessREST do
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.find_locations(options: {another_option: 'foo'})).to eq []
+      it 'adds other params passed in to the params' do
+        expect(client.find_locations(params: {another_option: 'foo'})).to eq []
       end
     end
   end
@@ -136,15 +136,15 @@ describe Booker::V4::BusinessREST do
       expect(client.find_employees(booker_location_id: booker_location_id)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         LocationID: booker_location_id,
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.find_employees(booker_location_id: booker_location_id, options: {another_option: 'foo'})).to eq []
+      it 'adds other params passed in to the params' do
+        expect(client.find_employees(booker_location_id: booker_location_id, params: {another_option: 'foo'})).to eq []
       end
     end
   end
@@ -170,15 +170,15 @@ describe Booker::V4::BusinessREST do
       expect(client.find_treatments(booker_location_id: booker_location_id)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         LocationID: booker_location_id,
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.find_treatments(booker_location_id: booker_location_id, options: {another_option: 'foo'})).to eq []
+      it 'adds other params passed in to the params' do
+        expect(client.find_treatments(booker_location_id: booker_location_id, params: {another_option: 'foo'})).to eq []
       end
     end
   end
@@ -206,7 +206,7 @@ describe Booker::V4::BusinessREST do
       expect(client.find_customers(booker_location_id: booker_location_id)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
                                                                                   :'access_token' => 'access_token',
                                                                                   :'FilterByExactLocationID' => true,
@@ -215,7 +215,7 @@ describe Booker::V4::BusinessREST do
                                                                                   :'another_option' => 'foo'
                                                                               })}
 
-      it 'adds other options passed in to the params' do
+      it 'adds other params passed in to the params' do
         expect(client.find_customers(booker_location_id: booker_location_id, params: {'another_option' => 'foo'})).to eq []
       end
     end
@@ -226,7 +226,7 @@ describe Booker::V4::BusinessREST do
     let(:end_date) { Time.zone.at(1438747199) }
     let(:coupon_code) { 'fred123456' }
     let(:name) { 'Frederick 20% Off' }
-    let(:options) {{
+    let(:params) {{
         'Type' => 2,
         'AdjustmentType' => 1,
         'DiscountType' => 1,
@@ -244,7 +244,7 @@ describe Booker::V4::BusinessREST do
           end_date: end_date,
           coupon_code: coupon_code,
           name: name,
-          params: options
+          params: params
       )
     end
     let(:expected_params) {{
@@ -300,7 +300,7 @@ describe Booker::V4::BusinessREST do
       expect(client.find_appointments_partial(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date)).to eq []
     end
 
-    context 'other options' do
+    context 'other params' do
       let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
         access_token: 'access_token',
         LocationID: booker_location_id,
@@ -309,8 +309,8 @@ describe Booker::V4::BusinessREST do
         another_option: 'foo'
       })}
 
-      it 'adds other options passed in to the params' do
-        expect(client.find_appointments_partial(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date, options: {another_option: 'foo'})).to eq []
+      it 'adds other params passed in to the params' do
+        expect(client.find_appointments_partial(booker_location_id: booker_location_id, start_date: from_start_date, end_date: to_start_date, params: {another_option: 'foo'})).to eq []
       end
     end
   end

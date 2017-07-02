@@ -21,30 +21,30 @@ module Booker
         response['LocationDaySchedules'].map { |sched| Booker::V4::Models::LocationDaySchedule.from_hash(sched) }
       end
 
-      def find_locations(options: {})
+      def find_locations(params: {})
         paginated_request(
             method: :post,
             path: '/locations',
-            params: build_params({}, options, true),
+            params: build_params({}, params, true),
             model: Booker::V4::Models::Location
         )
       end
 
-      def find_employees(booker_location_id:, fetch_all: true, options: {})
+      def find_employees(booker_location_id:, fetch_all: true, params: {})
         paginated_request(
             method: :post,
             path: '/employees',
-            params: build_params({LocationID: booker_location_id}, options, true),
+            params: build_params({LocationID: booker_location_id}, params, true),
             model: Booker::V4::Models::Employee,
             fetch_all: fetch_all
         )
       end
 
-      def find_treatments(booker_location_id:, fetch_all: true, options: {})
+      def find_treatments(booker_location_id:, fetch_all: true, params: {})
         paginated_request(
             method: :post,
             path: '/treatments',
-            params: build_params({LocationID: booker_location_id}, options, true),
+            params: build_params({LocationID: booker_location_id}, params, true),
             model: Booker::V4::Models::Treatment,
             fetch_all: fetch_all
         )
@@ -66,7 +66,15 @@ module Booker
         )
       end
 
-      def find_appointments_partial(booker_location_id:, start_date:, end_date:, fetch_all: true, options: {})
+      def get_customer(id:, params: {})
+        additional_params = {
+            LoadUnpaidAppointments: false,
+            includeFieldValues: false
+        }
+        get("/customer/#{id}", build_params(additional_params, params), Booker::V4::Models::Customer)
+      end
+
+      def find_appointments_partial(booker_location_id:, start_date:, end_date:, fetch_all: true, params: {})
         additional_params = {
             LocationID: booker_location_id,
             FromStartDate: start_date.to_date,
@@ -76,7 +84,7 @@ module Booker
         paginated_request(
             method: :post,
             path: '/appointments/partial',
-            params: build_params(additional_params, options, true),
+            params: build_params(additional_params, params, true),
             model: Booker::V4::Models::Appointment,
             fetch_all: fetch_all
         )
