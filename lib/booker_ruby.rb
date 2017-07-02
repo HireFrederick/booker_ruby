@@ -95,11 +95,16 @@ require 'booker/client'
 
 # V4 Rest
 require 'booker/v4/request_helper'
+require 'booker/v4/common_rest'
+require 'booker/v4/business_rest'
+require 'booker/v4/customer_rest'
 
 # Token Store
 require 'booker/generic_token_store'
 
 # Client Subclasses
+require 'booker/v4/business_client'
+require 'booker/v4/customer_client'
 require 'booker/v4.1/customer'
 require 'booker/v4.1/merchant'
 require 'booker/v5/availability'
