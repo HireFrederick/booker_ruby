@@ -174,8 +174,7 @@ describe Booker::Client do
             'Ocp-Apim-Subscription-Key' => api_subscription_key
           },
           query: data,
-          open_timeout: 120,
-          read_timeout: 300
+          timeout: 30,
       }
     }
     let(:data) { {data: 'datum'} }
@@ -206,8 +205,7 @@ describe Booker::Client do
           'Ocp-Apim-Subscription-Key' => api_subscription_key
         },
           body: post_data.to_json,
-          open_timeout: 120,
-          read_timeout: 300
+          timeout: 30,
       }
     }
     let(:data) { {data: 'datum'} }
@@ -239,8 +237,7 @@ describe Booker::Client do
           'Ocp-Apim-Subscription-Key' => api_subscription_key
         },
         body: post_data.to_json,
-        open_timeout: 120,
-        read_timeout: 300
+        timeout: 30
       }
     }
     let(:data) { {data: 'datum'} }
@@ -273,8 +270,7 @@ describe Booker::Client do
         },
         query: params,
         body: post_data.to_json,
-        open_timeout: 120,
-        read_timeout: 300
+        timeout: 30
       }
     }
     let(:data) { {data: 'datum'} }
@@ -409,8 +405,7 @@ describe Booker::Client do
           },
           body: body,
           query: params,
-          open_timeout: 120,
-          read_timeout: 300
+          timeout: 30,
       }
     end
     let(:path) { '/blah/blah' }
