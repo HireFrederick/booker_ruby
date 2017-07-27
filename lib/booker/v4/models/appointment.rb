@@ -57,7 +57,7 @@ module Booker
           'PackageID',
           'PaymentID',
           'PaymentItemID',
-          'PrimaryAppointmentTreatmentID',
+          'TreatmentID',
           'RecurrenceID',
           'Room',
           'Source',

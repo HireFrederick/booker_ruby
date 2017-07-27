@@ -59,7 +59,7 @@ describe Booker::V4::Models::Appointment do
       'PackageID',
       'PaymentID',
       'PaymentItemID',
-      'PrimaryAppointmentTreatmentID',
+      'TreatmentID',
       'RecurrenceID',
       'Room',
       'Source',
