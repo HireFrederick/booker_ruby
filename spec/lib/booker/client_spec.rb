@@ -558,15 +558,19 @@ describe Booker::Client do
   end
 
   describe '#handle_errors!' do
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 200) }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: response_code) }
     let(:parsed_response) { {} }
     let(:request) { 'request' }
     let(:url) { 'url' }
+    let(:response_code) { 200 }
+
+    before { allow(client).to receive(:get_access_token).and_return true }
 
     it 'raises API Gateway errors' do
       described_class::API_GATEWAY_ERRORS.each do |k, v|
+        next if k == 401
         response = instance_double(HTTParty::Response, code: k, parsed_response: {})
-        expect{client.send(:handle_errors!, url, request, response)}.to raise_error v
+        expect{ client.send(:handle_errors!, url, request, response) }.to raise_error v
       end
     end
 
@@ -610,11 +614,30 @@ describe Booker::Client do
     end
 
     context 'response unsuccessful' do
-      before { expect(resp).to receive(:success?).and_return(false) }
+      before do
+        allow(resp).to receive(:success?).and_return(false)
+      end
 
       it 'raises Booker::Error' do
         expect(Booker::Error).to receive(:new).with(url: 'url', request: 'foo', response: resp).and_call_original
         expect{client.handle_errors!('url', 'foo', resp)}.to raise_error(Booker::Error)
+      end
+
+      context 'status code of 401' do
+        let(:response_code) { 401 }
+
+        it 'gets a new token' do
+          expect(client.handle_errors!('url', 'foo', resp)).to be nil
+          expect(client).to have_received(:get_access_token)
+        end
+      end
+
+      context 'status code of 403' do
+        let(:response_code) { 403 }
+
+        it 'raises Booker::InvalidApiCredentials' do
+          expect{ client.handle_errors!('url', 'foo', resp) }.to raise_error Booker::InvalidApiCredentials
+        end
       end
     end
 

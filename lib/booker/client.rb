@@ -145,13 +145,21 @@ module Booker
       uri.scheme ? path : "#{self.base_url}#{path}"
     end
 
-    def handle_errors!(url, request, response)
+    def handle_errors!(url, request, response, retry_unauthorized=true)
       puts "BOOKER RESPONSE: #{response}" if ENV['BOOKER_API_DEBUG'] == 'true'
 
       error_class = API_GATEWAY_ERRORS[response.code]
-      raise error_class.new(url: url, request: request, response: response) if error_class
+
+      begin
+        raise error_class.new(url: url, request: request, response: response) if error_class
+      rescue Booker::InvalidApiCredentials => ex
+        raise ex unless response.code == 401 && retry_unauthorized
+        get_access_token
+        return nil
+      end
 
       ex = Booker::Error.new(url: url, request: request, response: response)
+
       if ex.error.present? || !response.success?
         case ex.error
           when 'invalid_client'
@@ -219,11 +227,11 @@ module Booker
       url = "#{self.auth_base_url}#{CREATE_TOKEN_PATH}"
 
       begin
-        handle_errors! url, options, HTTParty.post(url, options)
+        handle_errors! url, options, HTTParty.post(url, options), false
       rescue Booker::ServiceUnavailable, Booker::RateLimitExceeded
         # retry once
         sleep 1
-        handle_errors! url, options, HTTParty.post(url, options)
+        handle_errors! url, options, HTTParty.post(url, options), false
       end
     end
 
@@ -242,11 +250,11 @@ module Booker
       url = "#{self.auth_base_url}#{UPDATE_TOKEN_CONTEXT_PATH}"
 
       begin
-        resp = handle_errors! url, options, HTTParty.post(url, options)
+        resp = handle_errors! url, options, HTTParty.post(url, options), false
       rescue Booker::ServiceUnavailable, Booker::RateLimitExceeded
         # retry once
         sleep 1
-        resp = handle_errors! url, options, HTTParty.post(url, options)
+        resp = handle_errors! url, options, HTTParty.post(url, options), false
       end
 
       resp.parsed_response
