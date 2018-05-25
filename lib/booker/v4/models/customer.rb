@@ -6,6 +6,7 @@ module Booker
                       'GUID',
                       'Address',
                       'AllowReceiveEmails',
+                      'AllowReceivePromotionalEmails',
                       'AllowReceiveSMS',
                       'SendEmail',
                       'CellPhone', # Returned when using FindCustomers

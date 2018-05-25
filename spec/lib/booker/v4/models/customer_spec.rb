@@ -8,6 +8,7 @@ describe Booker::V4::Models::Customer do
       'GUID',
       'Address',
       'AllowReceiveEmails',
+      'AllowReceivePromotionalEmails',
       'AllowReceiveSMS',
       'CellPhone',
       'CreditCard',
