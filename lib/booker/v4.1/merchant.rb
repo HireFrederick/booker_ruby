@@ -127,6 +127,22 @@ module Booker
         get("#{V41_PREFIX}/customer/#{id}", build_params(additional_params, params), Booker::V4::Models::Customer)
       end
 
+      def update_customer(id:, update_params: {})
+        additional_params = {
+            LoadUnpaidAppointments: false,
+            includeFieldValues: false
+        }
+        # get a raw json response because we need to send all fields back with modifications
+        customer_response = get("#{V41_PREFIX}/customer/#{id}", build_params(additional_params), nil)
+
+        if customer_response.present? && customer = customer_response["Customer"]
+          customer["Customer"].merge!(update_params)
+          customer["LocationID"] = self.location_id
+          put("#{V41_PREFIX}/customer/#{id}", build_params(customer))
+        end
+
+      end
+
       def create_special(location_id:, start_date:, end_date:, coupon_code:, name:, params: {})
         post(API_METHODS[:create_special], build_params({
           LocationID: location_id,
