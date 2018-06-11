@@ -406,6 +406,48 @@ describe Booker::V41::Merchant do
     end
   end
 
+  describe '#update_customer' do
+    let(:path) { "#{v41_prefix}/customer/#{customer_id}" }
+    let(:customer_id) { 123 }
+    let(:default_params) do
+      {
+          LoadUnpaidAppointments: false,
+          includeFieldValues: false
+      }
+    end
+    let(:customer) { { "Customer" => { "Customer" => { "SomeAttribute" => true } } } }
+    let(:return_payload) { customer["Customer"].merge({"LocationID" => nil}) }
+
+    before do
+      allow(client).to receive(:customer).with(id: customer_id, model: nil).and_return(customer)
+      allow(client).to receive(:build_params).with(return_payload).once.and_call_original
+    end
+
+    it 'calls get and returns the raw response, calls put to update with no changes' do
+      expect(client).to receive(:customer).with(id: customer_id, model: nil).and_return(customer)
+      expect(client).to receive(:build_params).with(return_payload).once
+      expect(client).to receive(:put)
+                            .with(path, base_params.merge(return_payload.symbolize_keys))
+      client.update_customer(id: customer_id)
+
+    end
+
+    context 'with changes' do
+      let(:updated_attributes) { { "SomeAttribute" => false } }
+      let(:updated_customer) { { "Customer" => { "Customer" => { "SomeAttribute" => false } } }  }
+      let(:return_payload) { updated_customer["Customer"].merge({"LocationID" => nil}) }
+
+      it 'calls get and returns the raw response, calls put to update with updated attributes' do
+        expect(client).to receive(:customer).with(id: customer_id, model: nil).and_return(customer)
+        expect(client).to receive(:build_params).with(return_payload).once
+        expect(client).to receive(:put)
+                              .with(path, base_params.merge(return_payload.symbolize_keys))
+        client.update_customer(id: customer_id, update_params: updated_attributes )
+
+      end
+    end
+  end
+
   describe '#create_special' do
     let(:start_date) { Time.zone.at(1438660800) }
     let(:end_date) { Time.zone.at(1438747199) }
