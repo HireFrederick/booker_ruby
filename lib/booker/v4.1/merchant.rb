@@ -132,11 +132,17 @@ module Booker
         customer_response = customer(id: id, model: nil)
 
         if customer_response.present? && customer = customer_response["Customer"]
+          # extract the minimum required fields to send back
+          customer["Customer"] = extract_default_customer_fields(customer["Customer"])
           customer["Customer"].merge!(update_params)
           customer["LocationID"] = self.location_id
           put("#{V41_PREFIX}/customer/#{id}", build_params(customer))
         end
 
+      end
+
+      def extract_default_customer_fields(customer_attributes)
+        customer_attributes.slice("Email", "FirstName", "LastName", "HomePhone", "WorkPhone", "CellPhone")
       end
 
       def create_special(location_id:, start_date:, end_date:, coupon_code:, name:, params: {})
