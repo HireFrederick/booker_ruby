@@ -409,13 +409,7 @@ describe Booker::V41::Merchant do
   describe '#update_customer' do
     let(:path) { "#{v41_prefix}/customer/#{customer_id}" }
     let(:customer_id) { 123 }
-    let(:default_params) do
-      {
-          LoadUnpaidAppointments: false,
-          includeFieldValues: false
-      }
-    end
-    let(:customer) { { "Customer" => { "Customer" => { "SomeAttribute" => true } } } }
+    let(:customer) { { "Customer" => { "Customer" => { "Email" => "bob@example.com" } } } }
     let(:return_payload) { customer["Customer"].merge({"LocationID" => nil}) }
 
     before do
@@ -434,7 +428,7 @@ describe Booker::V41::Merchant do
 
     context 'with changes' do
       let(:updated_attributes) { { "SomeAttribute" => false } }
-      let(:updated_customer) { { "Customer" => { "Customer" => { "SomeAttribute" => false } } }  }
+      let(:updated_customer) { { "Customer" => { "Customer" => { "Email" => "bob@example.com", "SomeAttribute" => false } } }  }
       let(:return_payload) { updated_customer["Customer"].merge({"LocationID" => nil}) }
 
       it 'calls get and returns the raw response, calls put to update with updated attributes' do
@@ -442,10 +436,43 @@ describe Booker::V41::Merchant do
         expect(client).to receive(:build_params).with(return_payload).once
         expect(client).to receive(:put)
                               .with(path, base_params.merge(return_payload.symbolize_keys))
-        client.update_customer(id: customer_id, update_params: updated_attributes )
-
+        client.update_customer(id: customer_id, update_params: updated_attributes)
       end
     end
+
+    context 'with extra fields in get response' do
+      let(:customer) { { "Customer" => { "Customer" => { "Email" => "bob@example.com", "SomeUnecessaryAttribute" => false } } } }
+      let(:updated_attributes) { { "SomeAttribute" => false } }
+      let(:updated_customer) { { "Customer" => { "Customer" => { "Email" => "bob@example.com", "SomeAttribute" => false } } }  }
+      let(:return_payload) { updated_customer["Customer"].merge({"LocationID" => nil}) }
+
+      it 'calls put to update the customer with unecessary attributes removed' do
+        expect(client).to receive(:customer).with(id: customer_id, model: nil).and_return(customer)
+        expect(client).to receive(:build_params).with(return_payload).once
+        expect(client).to receive(:put)
+                            .with(path, base_params.merge(return_payload.symbolize_keys))
+        client.update_customer(id: customer_id, update_params: updated_attributes )
+      end
+    end
+  end
+
+  describe '#extract_default_customer_fields' do
+    let(:customer_json) {
+      {
+        "Email" => "test@example.com",
+        "FirstName" => "something",
+        "LastName" => "something else",
+        "HomePhone" => "123556666666",
+        "WorkPhone" => "123556666666",
+        "CellPhone" => "123556666666"
+      }
+    }
+
+    it 'removes any non-default fields' do
+      test_json = customer_json.merge({"SOMETHINGELSE" => false, "Test" => 1, "Unnecessary" => "stuff"})
+      expect(client.extract_default_customer_fields(test_json)).to eq(customer_json)
+    end
+
   end
 
   describe '#create_special' do
