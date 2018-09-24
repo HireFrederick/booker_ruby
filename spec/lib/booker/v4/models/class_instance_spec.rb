@@ -22,7 +22,8 @@ describe Booker::V4::Models::ClassInstance do
       'ListAsSubstitute',
       'IsEnrollable',
       'SeriesID',
-      'Treatment'].each do |attr|
+      'Treatment',
+      'Order'].each do |attr|
       expect(subject).to respond_to(attr)
       expect(subject).to respond_to("#{attr}=")
     end

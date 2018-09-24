@@ -1,7 +1,7 @@
 module Booker
   module V4
     module Models
-      class Sale < Model
+      class Order < Model
         attr_accessor 'ID',
 			'CustomerID',
 			'SavedInProgress',

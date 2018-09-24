@@ -21,7 +21,7 @@ module Booker
           'IsEnrollable',
           'SeriesID',
           'Treatment',
-          'Sale'
+          'Order'
       end
     end
   end
