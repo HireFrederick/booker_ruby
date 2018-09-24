@@ -20,7 +20,8 @@ module Booker
           'ListAsSubstitute',
           'IsEnrollable',
           'SeriesID',
-          'Treatment'
+          'Treatment',
+          'Sale'
       end
     end
   end
