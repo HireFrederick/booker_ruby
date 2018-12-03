@@ -56,6 +56,8 @@ describe Booker::Client do
         401 => Booker::InvalidApiCredentials,
         403 => Booker::InvalidApiCredentials
       })
+      expect(described_class::API_RESPONSE_CODES_ERRORS).to eq({ 1000 => Booker::InvalidApiCredentials })
+      expect(described_class::INVALID_ACCESS_TOKEN_MESSAGE).to eq 'invalid access token'
       expect(described_class::BOOKER_SERVER_TIMEZONE).to eq 'Eastern Time (US & Canada)'
     end
   end
@@ -558,10 +560,13 @@ describe Booker::Client do
   end
 
   describe '#handle_errors!' do
-    let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: response_code) }
+    let(:resp) do
+      instance_double(HTTParty::Response, parsed_response: parsed_response, code: response_code, success?: success)
+    end
     let(:parsed_response) { {} }
     let(:request) { 'request' }
     let(:url) { 'url' }
+    let(:success) { true }
     let(:response_code) { 200 }
 
     before { allow(client).to receive(:get_access_token).and_return true }
@@ -571,6 +576,54 @@ describe Booker::Client do
         next if k == 401
         response = instance_double(HTTParty::Response, code: k, parsed_response: {})
         expect{ client.send(:handle_errors!, url, request, response) }.to raise_error v
+      end
+    end
+
+    context 'with ErrorCode in parsed response and IsSuccess is false' do
+      described_class::API_RESPONSE_CODES_ERRORS.each do |error_code, error_class|
+        let(:parsed_response) { { 'ErrorCode' => error_code, 'IsSuccess' => false } }
+        let(:result) { client.send(:handle_errors!, url, request, resp) }
+
+        it 'raises API response code errors' do
+          expect { result }.to raise_error(error_class)
+        end
+
+        it 'does not execute get_access_token' do
+          expect { result }.to raise_error(error_class)
+          expect(client).not_to have_received(:get_access_token)
+        end
+      end
+    end
+
+    context 'with ErrorCode in parsed response and IsSuccess is false and ErrorMessage is "invalid access token"' do
+      described_class::API_RESPONSE_CODES_ERRORS.each do |error_code, error_class|
+        let(:parsed_response) do
+          {
+            'ErrorCode' => error_code,
+            'IsSuccess' => false,
+            'ErrorMessage' => described_class::INVALID_ACCESS_TOKEN_MESSAGE
+          }
+        end
+        let(:result) { client.send(:handle_errors!, url, request, resp) }
+
+        it 'does not raise API response code errors' do
+          result
+        end
+
+        it 'executes get_access_token' do
+          result
+          expect(client).to have_received(:get_access_token).once
+        end
+      end
+    end
+
+    context 'with ErrorCode in parsed response and IsSuccess is true' do
+      described_class::API_RESPONSE_CODES_ERRORS.each do |error_code, error_class|
+        let(:parsed_response) { { 'ErrorCode' => error_code, 'IsSuccess' => true } }
+
+        it "does not raise #{error_class}" do
+          expect { result }.not_to raise_error(error_class)
+        end
       end
     end
 

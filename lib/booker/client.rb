@@ -17,6 +17,10 @@ module Booker
       401 => Booker::InvalidApiCredentials,
       403 => Booker::InvalidApiCredentials
     }.freeze
+    API_RESPONSE_CODES_ERRORS = {
+      1000 => Booker::InvalidApiCredentials
+    }.freeze
+    INVALID_ACCESS_TOKEN_MESSAGE = 'invalid access token'.freeze
     BOOKER_SERVER_TIMEZONE = 'Eastern Time (US & Canada)'.freeze
     DEFAULT_CONTENT_TYPE = 'application/json'.freeze
     ENV_BASE_URL_KEY = 'BOOKER_API_BASE_URL'.freeze
@@ -150,10 +154,16 @@ module Booker
 
       error_class = API_GATEWAY_ERRORS[response.code]
 
+      parsed_response = response.parsed_response
+      unless error_class || parsed_response.try(:[], 'IsSuccess')
+        error_class = API_RESPONSE_CODES_ERRORS[parsed_response.try(:[], 'ErrorCode')]
+      end
+
       begin
         raise error_class.new(url: url, request: request, response: response) if error_class
       rescue Booker::InvalidApiCredentials => ex
-        raise ex unless response.code == 401 && retry_unauthorized
+        error_message = parsed_response.try(:[], 'ErrorMessage')
+        raise ex unless retry_unauthorized && (response.code == 401 || error_message == INVALID_ACCESS_TOKEN_MESSAGE)
         get_access_token
         return nil
       end
@@ -164,7 +174,7 @@ module Booker
         case ex.error
           when 'invalid_client'
             raise Booker::InvalidApiCredentials.new(url: url, request: request, response: response)
-          when 'invalid access token'
+          when INVALID_ACCESS_TOKEN_MESSAGE
             get_access_token
             return nil
           else
