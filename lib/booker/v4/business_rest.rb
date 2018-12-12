@@ -50,6 +50,16 @@ module Booker
         )
       end
 
+      def find_orders_partial(booker_location_id:, fetch_all: true, params: {})
+        paginated_request(
+            method: :post,
+            path: '/orders/partial',
+            params: build_params({LocationID: booker_location_id}, params, true),
+            model: Booker::V4::Models::Order,
+            fetch_all: fetch_all
+        )
+      end
+
       def find_treatments(booker_location_id:, fetch_all: true, params: {})
         paginated_request(
             method: :post,

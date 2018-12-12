@@ -149,9 +149,7 @@ describe Booker::V4::BusinessREST do
     end
   end
 
-
-
-  describe '#def find_orders(booker_location_id:, fetch_all: true, params: {})' do
+  describe '#find_orders' do
     let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
       access_token: 'access_token',
       LocationID: booker_location_id
@@ -184,7 +182,38 @@ describe Booker::V4::BusinessREST do
     end
   end
 
+  describe '#find_orders_partial' do
+    let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+                                                                                access_token: 'access_token',
+                                                                                LocationID: booker_location_id
+                                                                            })}
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:paginated_request).with(
+          method: :post,
+          path: '/orders/partial',
+          params: expected_params,
+          model: Booker::V4::Models::Order,
+          fetch_all: true
+      ).and_return([])
+    end
 
+    it 'delegates to get_booker_resources' do
+      expect(client.find_orders_partial(booker_location_id: booker_location_id)).to eq []
+    end
+
+    context 'other params' do
+      let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+                                                                                  access_token: 'access_token',
+                                                                                  LocationID: booker_location_id,
+                                                                                  another_option: 'foo'
+                                                                              })}
+
+      it 'adds other params passed in to the params' do
+        expect(client.find_orders_partial(booker_location_id: booker_location_id, params: {another_option: 'foo'})).to eq []
+      end
+    end
+  end
 
   describe '#find_treatments' do
     let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
