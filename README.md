@@ -10,7 +10,7 @@ Client for the Booker API. See https://developers.booker.com for method-level do
 
 Add the gem to your Gemfile:
 
-`gem 'booker_ruby', '~> 3.0'`
+`gem 'booker_ruby', '~> 3.3.3'`
 
 Configuration may be specified via the environment or when initializing Booker::Client:
 
