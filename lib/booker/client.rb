@@ -89,7 +89,11 @@ module Booker
       results = self.send(method, path, params, model)
 
       unless results.is_a?(Array)
-        raise StandardError, "Result from paginated request to #{path} with params: #{params} is not a collection"
+        error = StandardError.new("Result from paginated request to #{path} with params: #{params} is not a collection")
+        error.instance_variable_set(:@error_occurred_during_params, params)
+        error.instance_variable_set(:@results_prior_to_error, fetched)
+
+        raise error
       end
 
       fetched.concat(results)
