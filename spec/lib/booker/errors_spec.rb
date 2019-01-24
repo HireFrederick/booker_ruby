@@ -69,6 +69,42 @@ describe Booker::Error do
   end
 end
 
+describe Booker::MidPaginationError do
+  describe 'attributes' do
+    it { expect(subject).to respond_to :error_occurred_during_params }
+    it { expect(subject).to respond_to :results_fetched_prior_to_error }
+    it { expect(subject).to respond_to :message }
+    it { expect(subject).to respond_to :error_occurred_during_params= }
+    it { expect(subject).to respond_to :results_fetched_prior_to_error= }
+    it { expect(subject).to respond_to :message= }
+  end
+
+  describe '.new' do
+    let(:error) { Booker::MidPaginationError.new(message, error_occurred_during_params, results_fetched_prior_to_error) }
+
+    before do
+      expect(error.error_occurred_during_params).to eq error_occurred_during_params
+      expect(error.results_fetched_prior_to_error).to eq results_fetched_prior_to_error
+      expect(error.message).to eq message
+    end
+
+    context 'when all atRtrs defined' do
+      let(:error_occurred_during_params) { {PageSize: 1} }
+      let(:results_fetched_prior_to_error) { ['prior results'] }
+      let(:message) { "Special message" }
+
+      it 'sets error data' do; end
+    end
+    context 'when attrs undefined' do
+      let(:error_occurred_during_params) { {} }
+      let(:results_fetched_prior_to_error) { [] }
+      let(:message) { "Error occurred during call mid-pagination" }
+
+      it 'sets defaults' do; end
+    end
+  end
+end
+
 describe Booker::InvalidApiCredentials do
   it 'should be a Booker::Error' do
     expect(Booker::InvalidApiCredentials.new).to be_a(Booker::Error)
