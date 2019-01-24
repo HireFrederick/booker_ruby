@@ -1,2 +1,0 @@
-class MidPaginationError
-end
