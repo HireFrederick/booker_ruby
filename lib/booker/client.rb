@@ -89,7 +89,9 @@ module Booker
       results = self.send(method, path, params, model)
 
       unless results.is_a?(Array)
-        raise Booker::MidPaginationError.new("Result from paginated request to #{path} with params: #{params} is not a collection", params, fetched)
+        error_msg = "Result from paginated request to #{path} with params: #{params} is not a collection"
+        raise Booker::MidPaginationError.new(message: error_msg, error_occurred_during_params: params,
+                                             results_fetched_prior_to_error: fetched)
       end
 
       fetched.concat(results)

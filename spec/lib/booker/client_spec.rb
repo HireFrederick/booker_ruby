@@ -384,8 +384,9 @@ describe Booker::Client do
       let(:base_paginated_params) { {method: 'method', path: path, params: params, model: Booker::V4::Models::Model, fetch_all: true} }
       let(:pagination_params) { base_paginated_params }
       let(:result) { client.paginated_request(pagination_params) }
+      let(:message) { "Result from paginated request to #{path} with params: #{params} is not a collection" }
       let(:error) do
-        Booker::MidPaginationError.new("Result from paginated request to #{path} with params: #{params} is not a collection", params, [])
+        Booker::MidPaginationError.new(message: message, error_occurred_during_params: params, results_fetched_prior_to_error: [])
       end
 
       context 'first page returns a non-array' do
@@ -409,7 +410,10 @@ describe Booker::Client do
 
         before do
           expect(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return(error_page)
-          expect(Booker::MidPaginationError).to receive(:new).with(message, params, already_fetched).and_call_original
+          expect(Booker::MidPaginationError).to receive(:new).with(message: message,
+                                                                   error_occurred_during_params:  params,
+                                                                   results_fetched_prior_to_error: already_fetched
+            ).and_call_original
         end
 
         it 'raises error; returns results prior to error' do

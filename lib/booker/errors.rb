@@ -22,7 +22,7 @@ module Booker
   class MidPaginationError < StandardError
     attr_accessor :error_occurred_during_params, :results_fetched_prior_to_error, :message
 
-    def initialize(message="Error occurred during call mid-pagination", error_occurred_during_params={}, results_fetched_prior_to_error=[])
+    def initialize(message: "Error occurred during call mid-pagination", error_occurred_during_params: {}, results_fetched_prior_to_error: [])
       self.error_occurred_during_params = error_occurred_during_params
       self.results_fetched_prior_to_error = results_fetched_prior_to_error
       self.message = message

@@ -80,7 +80,10 @@ describe Booker::MidPaginationError do
   end
 
   describe '.new' do
-    let(:error) { Booker::MidPaginationError.new(message, error_occurred_during_params, results_fetched_prior_to_error) }
+    let(:error) do
+      Booker::MidPaginationError.new(message: message, error_occurred_during_params: error_occurred_during_params,
+                                     results_fetched_prior_to_error: results_fetched_prior_to_error)
+    end
     let(:message) { "Error occurred during call mid-pagination" }
     before do
       expect(error.error_occurred_during_params).to eq error_occurred_during_params
