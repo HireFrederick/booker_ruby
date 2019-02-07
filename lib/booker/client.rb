@@ -272,7 +272,7 @@ module Booker
             'Authorization' => "Bearer #{access_token}",
             'Ocp-Apim-Subscription-Key' => self.api_subscription_key
           },
-          timeout: 30
+          timeout: 60
         }
 
         options[:body] = body if body.present?
