@@ -70,6 +70,12 @@ module Booker
       build_resources(booker_resources, booker_model)
     end
 
+    def patch(path, data, booker_model=nil)
+      booker_resources = get_booker_resources(:patch, path, nil, data.to_json, booker_model)
+
+      build_resources(booker_resources, booker_model)
+    end
+
     def delete(path, params=nil, body=nil, booker_model=nil)
       booker_resources = get_booker_resources(:delete, path, params, body.to_json, booker_model)
 
