@@ -1,8 +1,6 @@
 module Booker
   module V5
     class Availability < Booker::Client
-      include ::Booker::RequestHelper
-
       API_METHODS = {
         availability: '/v5/availability/availability'.freeze,
         two_day_availability: '/v5/availability/2day'.freeze,
