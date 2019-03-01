@@ -1,6 +1,8 @@
 module Booker
   module V41
     class Customer < Booker::Client
+      include ::Booker::RequestHelper
+
       V41_PREFIX = '/v4.1/customer'
       V41_APPOINTMENTS_PREFIX = "#{V41_PREFIX}/appointment"
       API_METHODS = {

@@ -1,6 +1,8 @@
 module Booker
   module V4
     module CommonREST
+      include ::Booker::RequestHelper
+
       def get_online_booking_settings(booker_location_id:)
         response = get("/location/#{booker_location_id}/online_booking_settings", build_params)
         Booker::V4::Models::OnlineBookingSettings.from_hash(response['OnlineBookingSettings'])
