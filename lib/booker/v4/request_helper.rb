@@ -1,5 +1,7 @@
 module Booker
   module V4
-    include Booker::RequestHelper
+    module RequestHelper
+      
+    end
   end
 end
