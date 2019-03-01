@@ -1,7 +1,7 @@
 module Booker
   module V41
     class Merchant < Booker::Client
-      include Booker::V4::RequestHelper
+      include ::Booker::RequestHelper
 
       V41_PREFIX = '/v4.1/merchant'
       V41_LOCATION_PREFIX = "#{V41_PREFIX}/location"
