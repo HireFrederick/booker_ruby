@@ -259,6 +259,38 @@ describe Booker::Client do
     end
   end
 
+  describe '#patch' do
+    let(:http_party_options) {
+      {
+          headers: {
+              'Content-Type' => 'application/json',
+              'Accept' => 'application/json',
+              'Authorization' => "Bearer #{temp_access_token}",
+              'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
+          body: post_data.to_json,
+          timeout: 60
+      }
+    }
+    let(:data) { {data: 'datum'} }
+    let(:resp) { instance_double(HTTParty::Response, parsed_response: {'Results' => [data]}, code: 200) }
+    let(:post_data) { {"lUserID" => 13240029,"lBusinessID" => "25142"} }
+
+    it 'makes the request using the options given' do
+      expect(client).to receive(:get_booker_resources).with(:patch, '/blah/blah', nil, post_data.to_json, Booker::V4::Models::Model).and_call_original
+      expect(HTTParty).to receive(:patch).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+      expect(resp).to receive(:success?).and_return(true)
+      expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
+      expect(client.patch('/blah/blah', post_data, Booker::V4::Models::Model)).to eq ['results']
+    end
+
+    it 'allows you to not pass in a booker model' do
+      expect(HTTParty).to receive(:patch).with("#{client.base_url}blah/blah", http_party_options).and_return(resp)
+      expect(resp).to receive(:success?).and_return(true)
+      expect(client.patch('blah/blah', post_data)).to eq [data]
+    end
+  end
+
   describe '#delete' do
     let(:http_party_options) {
       {

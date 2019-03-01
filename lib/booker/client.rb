@@ -1,5 +1,7 @@
 module Booker
   class Client
+    include Booker::RequestHelper
+
     attr_accessor :base_url, :auth_base_url, :client_id, :client_secret, :temp_access_token,
                   :temp_access_token_expires_at, :token_store, :token_store_callback_method, :api_subscription_key,
                   :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials
@@ -66,6 +68,12 @@ module Booker
 
     def put(path, data, booker_model=nil)
       booker_resources = get_booker_resources(:put, path, nil, data.to_json, booker_model)
+
+      build_resources(booker_resources, booker_model)
+    end
+
+    def patch(path, data, booker_model=nil)
+      booker_resources = get_booker_resources(:patch, path, nil, data.to_json, booker_model)
 
       build_resources(booker_resources, booker_model)
     end

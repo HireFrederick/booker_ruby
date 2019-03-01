@@ -16,6 +16,10 @@ require 'booker/booker'
 # Errors
 require 'booker/errors'
 
+# Concerns
+require 'booker/concerns/date_time_concern'
+require 'booker/request_helper'
+
 # Models
 require 'booker/model'
 
@@ -23,6 +27,7 @@ require 'booker/model'
 require 'booker/v4/models/model'
 
 # Types
+require 'booker/v4/request_helper'
 require 'booker/v4/models/type'
 require 'booker/v4/models/country'
 require 'booker/v4/models/status'
@@ -95,7 +100,6 @@ require 'booker/v5/models/availability_result'
 require 'booker/client'
 
 # V4 Rest
-require 'booker/v4/request_helper'
 require 'booker/v4/common_rest'
 require 'booker/v4/business_rest'
 require 'booker/v4/customer_rest'

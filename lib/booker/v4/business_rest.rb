@@ -2,6 +2,7 @@ module Booker
   module V4
     module BusinessREST
       include Booker::V4::CommonREST
+      include ::Booker::RequestHelper
 
       def get_logged_in_user
         response = get('/user', build_params)
