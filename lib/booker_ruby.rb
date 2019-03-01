@@ -88,7 +88,6 @@ require 'booker/v4/models/notification_settings'
 require 'booker/v4/models/feature_settings'
 
 # V5 Models
-require 'booker/v5/request_helper'
 require 'booker/v5/models/model'
 require 'booker/v5/models/location_hour'
 require 'booker/v5/models/availability'
@@ -111,7 +110,6 @@ require 'booker/generic_token_store'
 # Client Subclasses
 require 'booker/v4/business_client'
 require 'booker/v4/customer_client'
-# require 'booker/v4.1/request_helper'
 require 'booker/v4.1/customer'
 require 'booker/v4.1/merchant'
 require 'booker/v5/availability'
