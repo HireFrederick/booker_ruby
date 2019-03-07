@@ -317,6 +317,16 @@ describe Booker::Client do
       expect(Booker::V4::Models::Model).to receive(:from_list).with([data]).and_return(['results'])
       expect(client.delete('/blah/blah', params, post_data, Booker::V4::Models::Model)).to eq ['results']
     end
+    context 'when response is empty body with 204' do
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: nil, code: 204) }
+
+      it  'makes request using options given; does not raise' do
+        expect(client).to receive(:get_booker_resources).with(:delete, '/blah/blah', params, post_data.to_json, Booker::V4::Models::Model).and_call_original
+        expect(HTTParty).to receive(:delete).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+        expect(resp).to receive(:success?).and_return(true)
+        expect(client.delete('/blah/blah', params, post_data, Booker::V4::Models::Model)).to eq nil
+      end
+    end
   end
 
   describe '#paginated_request' do
@@ -512,6 +522,17 @@ describe Booker::Client do
         expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
         expect(resp).to receive(:success?).and_return(true)
         expect(client.get_booker_resources(:get, path, params, body)).to eq parsed_response
+      end
+    end
+
+    context 'when successful delete request; parsed_response is nil' do
+      let(:parsed_response) { nil }
+      let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 204) }
+
+      it 'does not throw error; returns nil' do
+        expect(HTTParty).to receive(:delete).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+        expect(resp).to receive(:success?).and_return(true)
+        expect(client.get_booker_resources(:delete, path, params, body)).to eq parsed_response
       end
     end
 
@@ -1026,6 +1047,48 @@ describe Booker::Client do
 
       it 'returns base url plus path if no scheme' do
         expect(client.full_url(path)).to eq "#{base_url}#{path}"
+      end
+    end
+  end
+
+  describe 'private #response_is_error?(response, http_method)' do
+    let(:parsed_response) { {"Data" => ['data point'] } }
+    let(:code) { 200 }
+    let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: code) }
+    let(:nil_or_empty_hash) { true }
+    before { allow(client).to receive(:nil_or_empty_hash?).with(parsed_response).and_return nil_or_empty_hash }
+
+    context 'when successful delete request; parsed_response is nil' do
+      let(:code) { 204 }
+      let(:parsed_response) { nil }
+
+      context 'when code is 204 or 200' do
+        it 'returns false' do
+          expect(client.send(:response_is_error?, response, :delete)).to be false
+        end
+      end
+      context 'when code is 404' do
+        let(:code) { 404 }
+
+        it 'returns true' do
+          expect(client.send(:response_is_error?, response, :delete)).to be true
+        end
+      end
+    end
+    context 'when not a delete request' do
+      context 'when nil_or_empty_hash of parsed response is true' do
+        let(:nil_or_empty_hash) { true }
+
+        it 'returns true' do
+          expect(client.send(:response_is_error?, response, :get)).to be true
+        end
+      end
+      context 'when nil_or_empty_hash of parsed response is false' do
+        let(:nil_or_empty_hash) { false }
+
+        it 'returns false' do
+          expect(client.send(:response_is_error?, response, :get)).to be false
+        end
       end
     end
   end

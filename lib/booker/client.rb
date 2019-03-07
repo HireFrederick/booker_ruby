@@ -136,13 +136,13 @@ module Booker
         end
       end
 
-      unless response.nil? || nil_or_empty_hash?(response.parsed_response)
+      unless response_is_error?(response, http_method)
         return results_from_response(response, booker_model)
       end
 
       # Retry on blank responses (happens in certain v4 API methods in lieu of an actual error)
       response = handle_errors!(url, http_options, HTTParty.send(http_method, url, http_options))
-      unless response.nil? || nil_or_empty_hash?(response.parsed_response)
+      unless response_is_error?(response, http_method)
         return results_from_response(response, booker_model)
       end
 
@@ -319,6 +319,12 @@ module Booker
         end
 
         parsed_response
+      end
+
+      def response_is_error?(response, http_method)
+        return false if (http_method == :delete) && (response.code == 204)
+
+        response.nil? || nil_or_empty_hash?(response.parsed_response)
       end
 
       def nil_or_empty_hash?(obj)
