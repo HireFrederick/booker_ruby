@@ -322,8 +322,7 @@ module Booker
       end
 
       def response_is_error?(response, http_method)
-        successful_delete_request = (http_method == :delete) && (response.code == 204)
-        return false if successful_delete_request
+        return false if (http_method == :delete) && (response.code == 204)
 
         response.nil? || nil_or_empty_hash?(response.parsed_response)
       end
