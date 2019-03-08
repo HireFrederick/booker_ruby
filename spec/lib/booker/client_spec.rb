@@ -1090,6 +1090,13 @@ describe Booker::Client do
           expect(client.send(:response_is_error?, response, :get)).to be false
         end
       end
+      context 'when response is nil' do
+        let(:response) { nil }
+
+        it 'returns true; does not throw error' do
+          expect(client.send(:response_is_error?, response, :delete)).to be true
+        end
+      end
     end
   end
 
