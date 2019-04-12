@@ -94,7 +94,7 @@ require 'booker/v5/models/availability'
 require 'booker/v5/models/service'
 require 'booker/v5/models/service_category'
 require 'booker/v5/models/availability_result'
-
+require 'booker/v5/models/purchased_series'
 
 # Base Client
 require 'booker/client'
@@ -113,6 +113,7 @@ require 'booker/v4/customer_client'
 require 'booker/v4.1/customer'
 require 'booker/v4.1/merchant'
 require 'booker/v5/availability'
+require 'booker/v5/internal_client'
 
 # Helpers
 require 'booker/helpers/logging_helper'
