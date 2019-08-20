@@ -27,6 +27,11 @@ BOOKER_API_DEBUG = false # Set to true to print request details to the log
 To ease development, **the gem points to Booker's API Sandbox at apicurrent-app.booker.ninja by default**.
 For production, you must set BOOKER_API_BASE_URL to https://api.booker.com.
 
+## Errors
+
+The `booker_ruby` gem provides a myriad of methods with useful error information on its [Booker::Error](https://github.com/HireFrederick/booker_ruby/blob/master/lib/booker/errors.rb#L3).
+These include: message, error, description, url, request, and response.
+
 ## Using Booker::Client
 
 A client subclass is available for each API:
