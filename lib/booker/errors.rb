@@ -1,6 +1,6 @@
 module Booker
   class Error < StandardError
-    attr_accessor :error, :description, :url, :request, :response
+    attr_accessor :error, :description, :url, :request, :response, :message
 
     def initialize(url: nil, request: nil, response: nil)
       if request.present?
@@ -13,8 +13,10 @@ module Booker
           self.error = response.parsed_response['error'] || response.parsed_response['ErrorMessage']
           self.description = response.parsed_response['error_description']
         end
+        error_msg_from_response = self.response.try(:parsed_response) || self.response
       end
 
+      self.message = error_msg_from_response || "Error occurred, but no response was returned."
       self.url = url
     end
   end

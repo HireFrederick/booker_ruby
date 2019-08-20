@@ -7,15 +7,18 @@ describe Booker::Error do
     it { expect(subject).to respond_to :description }
     it { expect(subject).to respond_to :request }
     it { expect(subject).to respond_to :response }
+    it { expect(subject).to respond_to :message }
     it { expect(subject).to respond_to :url= }
     it { expect(subject).to respond_to :error= }
     it { expect(subject).to respond_to :description= }
     it { expect(subject).to respond_to :request= }
     it { expect(subject).to respond_to :response= }
+    it { expect(subject).to respond_to :message= }
   end
 
   describe '.new' do
     let(:response) { instance_double(HTTParty::Response, parsed_response: parsed_response) }
+    let(:no_response_error_msg) { "Error occurred, but no response was returned." }
 
     context 'response is present' do
       let(:error) { Booker::Error.new(response: response) }
@@ -28,10 +31,11 @@ describe Booker::Error do
         }
       end
 
-      it 'sets error data' do
+      it 'sets error data; message is set to full parsed response' do
         expect(error.error).to eq 'error'
         expect(error.description).to eq 'description'
         expect(error.request).to be_nil
+        expect(error.message).to eq(parsed_response)
       end
 
       context 'when error is not present, but ErrorMessage is' do
@@ -45,6 +49,7 @@ describe Booker::Error do
         it 'sets error data' do
           expect(error.error).to eq 'ErrorMessage'
           expect(error.description).to eq 'description'
+          expect(error.message).to eq(parsed_response)
         end
       end
     end
@@ -56,6 +61,7 @@ describe Booker::Error do
         expect(error.request).to eq 'foo'
         expect(error.error).to be_nil
         expect(error.description).to be_nil
+        expect(error.message).to eq(no_response_error_msg)
       end
     end
 
@@ -64,6 +70,7 @@ describe Booker::Error do
 
       it 'sets url' do
         expect(error.url).to eq 'foo'
+        expect(error.message).to eq(no_response_error_msg)
       end
     end
   end
