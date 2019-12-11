@@ -4,7 +4,7 @@ module Booker
 
     attr_accessor :base_url, :auth_base_url, :client_id, :client_secret, :temp_access_token,
                   :temp_access_token_expires_at, :token_store, :token_store_callback_method, :api_subscription_key,
-                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials
+                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials, :request_timeout
 
     CREATE_TOKEN_CONTENT_TYPE = 'application/x-www-form-urlencoded'.freeze
     CLIENT_CREDENTIALS_GRANT_TYPE = 'client_credentials'.freeze
@@ -280,7 +280,7 @@ module Booker
             'Authorization' => "Bearer #{access_token}",
             'Ocp-Apim-Subscription-Key' => self.api_subscription_key
           },
-          timeout: 60
+          timeout: self.request_timeout || 60
         }
 
         options[:body] = body if body.present?
