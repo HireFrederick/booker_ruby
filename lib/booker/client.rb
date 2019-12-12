@@ -4,7 +4,7 @@ module Booker
 
     attr_accessor :base_url, :auth_base_url, :client_id, :client_secret, :temp_access_token,
                   :temp_access_token_expires_at, :token_store, :token_store_callback_method, :api_subscription_key,
-                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials
+                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials, :request_timeout
 
     CREATE_TOKEN_CONTENT_TYPE = 'application/x-www-form-urlencoded'.freeze
     CLIENT_CREDENTIALS_GRANT_TYPE = 'client_credentials'.freeze
@@ -24,9 +24,11 @@ module Booker
     ENV_BASE_URL_KEY = 'BOOKER_API_BASE_URL'.freeze
     DEFAULT_BASE_URL = 'https://api-staging.booker.com'.freeze
     DEFAULT_AUTH_BASE_URL = 'https://api-staging.booker.com'
+    DEFAULT_REQUEST_TIMEOUT = 60
 
     def initialize(options = {})
       options.each { |key, value| send(:"#{key}=", value) }
+      self.request_timeout ||= DEFAULT_REQUEST_TIMEOUT
       self.base_url ||= get_base_url
       self.auth_base_url ||= ENV['BOOKER_API_BASE_URL'] || DEFAULT_AUTH_BASE_URL
       self.client_id ||= ENV['BOOKER_CLIENT_ID']
@@ -280,7 +282,7 @@ module Booker
             'Authorization' => "Bearer #{access_token}",
             'Ocp-Apim-Subscription-Key' => self.api_subscription_key
           },
-          timeout: 60
+          timeout: self.request_timeout
         }
 
         options[:body] = body if body.present?
