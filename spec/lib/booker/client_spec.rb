@@ -11,8 +11,8 @@ describe Booker::Client do
   let(:access_token_scope) { 'merchant' }
   let(:location_id) { nil }
   let(:auth_with_client_credentials) { false }
-  let(:client) do
-    Booker::Client.new(
+  let(:client_initialize_parms) {
+    {
       base_url: base_url,
       temp_access_token: temp_access_token,
       client_id: client_id,
@@ -23,7 +23,10 @@ describe Booker::Client do
       location_id: location_id,
       auth_with_client_credentials: auth_with_client_credentials,
       refresh_token: refresh_token
-    )
+    }
+  }
+  let(:client) do
+    Booker::Client.new(client_initialize_parms)
   end
   let(:token_store) { Booker::GenericTokenStore }
   let(:token_store_callback_method) { :update_booker_access_token! }
@@ -466,6 +469,7 @@ describe Booker::Client do
   end
 
   describe '#get_booker_resources' do
+    let(:timeout) { Booker::Client::DEFAULT_REQUEST_TIMEOUT }
     let(:data) { {data: 'datum'} }
     let(:resp) { instance_double(HTTParty::Response, parsed_response: parsed_response, code: 200) }
     let(:parsed_response) { {'Results' => [data]} }
@@ -481,12 +485,38 @@ describe Booker::Client do
           },
           body: body,
           query: params,
-          timeout: 60,
+          timeout: Booker::Client::DEFAULT_REQUEST_TIMEOUT,
       }
     end
     let(:path) { '/blah/blah' }
 
     before { expect(client).to receive(:full_url).with(path).and_call_original }
+
+    context 'no user supplied timeout' do
+      it 'uses default timeout value' do
+        expect(http_party_options[:timeout]).to eq(Booker::Client::DEFAULT_REQUEST_TIMEOUT)
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
+
+        expect(resp).to receive(:success?).and_return(true)
+        client.get_booker_resources(:get, path, params, body)
+      end
+    end
+
+    context 'user supplies timeout' do
+      let(:timeout) { 220 }
+      let(:client) do
+        Booker::Client.new(client_initialize_parms.merge(request_timeout: timeout))
+      end
+      let(:http_options) { http_party_options.merge(timeout: timeout) }
+
+      it 'uses supplied timeout value' do
+        expect(http_options[:timeout]).to eq(timeout)
+        expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_options).and_return(resp)
+
+        expect(resp).to receive(:success?).and_return(true)
+        client.get_booker_resources(:get, path, params, body)
+      end
+    end
 
     it 'returns the results if they are present' do
       expect(HTTParty).to receive(:get).with("#{client.base_url}/blah/blah", http_party_options).and_return(resp)
