@@ -23,6 +23,7 @@ describe Booker::V41::Customer do
         create_class_appointment: "#{v41_prefix}/class_appointment/create",
         employees: "#{v41_prefix}/employees",
         treatments: "#{v41_prefix}/treatments",
+        treatments_verified_bookable_online: "#{v41_prefix}/treatments/online",
         location: "#{v41_prefix}/location",
         locations: "#{v41_prefix}/locations",
         class_availability: "#{v41_prefix}/availability/class",
