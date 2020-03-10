@@ -306,6 +306,42 @@ describe Booker::V41::Customer do
     end
   end
 
+  describe '#treatments_verified_bookable_online' do
+    let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+      access_token: 'access_token',
+      LocationID: booker_location_id
+    })}
+
+    before do
+      expect(client).to receive(:access_token).and_return 'access_token'
+      expect(client).to receive(:paginated_request).with(
+        method: :post,
+        path: '/v4.1/customer/treatments/online',
+        params: expected_params,
+        model: Booker::V4::Models::TreatmentVerifiedBookableOnline,
+        fetch_all: true
+      ).and_return([])
+    end
+
+    it 'delegates to get_booker_resources' do
+      expect(client.treatments_verified_bookable_online(location_id: booker_location_id)).to eq []
+    end
+
+    context 'other params' do
+      let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
+        access_token: 'access_token',
+        LocationID: booker_location_id,
+        another_option: 'foo'
+      })}
+
+      it 'merges passed in params into base params' do
+        expect(
+          client.treatments_verified_bookable_online(location_id: booker_location_id, params: { another_option: 'foo' })
+        ).to eq []
+      end
+    end
+  end
+
   describe '#run_class_availability' do
     let(:params) {{}}
     let(:result) { client.class_availability(

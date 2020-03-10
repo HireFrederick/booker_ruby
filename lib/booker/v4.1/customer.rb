@@ -69,7 +69,7 @@ module Booker
           method: :post,
           path: API_METHODS[:treatments_verified_bookable_online],
           params: build_params({LocationID: location_id}, params, true),
-          model: Booker::V4::Models::Treatment,
+          model: Booker::V4::Models::TreatmentVerifiedBookableOnline,
           fetch_all: fetch_all
         )
       end
