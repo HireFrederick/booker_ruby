@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    booker_ruby (3.3.11)
+    booker_ruby (3.3.12)
       activesupport (>= 3.0.0)
       httparty (>= 0.14)
       jwt (~> 1.5)
