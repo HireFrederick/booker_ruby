@@ -37,6 +37,10 @@ module Booker
                       'SubCategory',
                       'TotalDuration',
                       'TreatmentDuration'
+
+        def self.response_results_key
+          'Treatment'
+        end
       end
     end
   end

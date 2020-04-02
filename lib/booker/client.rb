@@ -313,10 +313,10 @@ module Booker
         return parsed_response['Results'] unless parsed_response['Results'].nil?
 
         if booker_model
-          model_name = booker_model.to_s.demodulize
-          return parsed_response[model_name] unless parsed_response[model_name].nil?
+          response_results_key = booker_model.response_results_key
+          return parsed_response[response_results_key] unless parsed_response[response_results_key].nil?
 
-          pluralized = model_name.pluralize
+          pluralized = response_results_key.pluralize
           return parsed_response[pluralized] unless parsed_response[pluralized].nil?
         end
 
