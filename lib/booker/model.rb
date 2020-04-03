@@ -67,6 +67,12 @@ module Booker
       end
     end
 
+    protected
+
+      def self.response_results_key
+        self.to_s.demodulize
+      end
+
     private
 
     def hash_list(array)

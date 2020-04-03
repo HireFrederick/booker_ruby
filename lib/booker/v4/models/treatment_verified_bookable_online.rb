@@ -8,9 +8,6 @@ module Booker
                       'AvailableInAdvanceDateUnitType',
                       'Category',
                       'ColorCode',
-                      'CustomerRecordType',
-                      'CustomerTypeID',
-                      'CustomerTypeName',
                       'DateCreatedOffset',
                       'DateLastModifiedOffset',
                       'DepositOptions',
@@ -19,24 +16,23 @@ module Booker
                       'DoesNotRequireStaff',
                       'DurationType',
                       'EmployeeTreatments',
-                      'FlexiblePriceIncrementType',
                       'ImageURL',
                       'IsActive',
-                      'IsBoundingService',
                       'IsClass',
                       'IsDeleted',
-                      'IsFlexiblePrice',
                       'IsForCouples',
-                      'IsSharedService',
                       'MaxTreatmentDuration',
                       'MinTreatmentDuration',
                       'Name',
                       'Price',
                       'RequiresTwoTechnicians',
-                      'SharedRoomGuestCount',
                       'SubCategory',
                       'TotalDuration',
                       'TreatmentDuration'
+
+        def self.response_results_key
+          'Treatment'
+        end
       end
     end
   end
