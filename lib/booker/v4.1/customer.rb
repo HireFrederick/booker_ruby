@@ -11,6 +11,7 @@ module Booker
         create_appointment: "#{V41_APPOINTMENTS_PREFIX}/create".freeze,
         create_class_appointment: "#{V41_PREFIX}/class_appointment/create".freeze,
         employees: "#{V41_PREFIX}/employees".freeze,
+        treatment: "#{V41_PREFIX}/treatment".freeze,
         treatments: "#{V41_PREFIX}/treatments".freeze,
         treatments_verified_bookable_online: "#{V41_PREFIX}/treatments/online".freeze,
         location: "#{V41_PREFIX}/location".freeze,
@@ -52,6 +53,10 @@ module Booker
           model: Booker::V4::Models::Employee,
           fetch_all: fetch_all
         )
+      end
+
+      def treatment(id:)
+        get "#{API_METHODS[:treatment]}/#{id}", build_params, Booker::V4::Models::TreatmentVerifiedBookableOnline
       end
 
       def treatments(location_id:, fetch_all: true, params: {})

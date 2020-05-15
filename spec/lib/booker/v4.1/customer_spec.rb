@@ -272,6 +272,19 @@ describe Booker::V41::Customer do
     end
   end
 
+  describe '#treatment' do
+    let(:expected_params) { {access_token: 'access_token' } }
+
+    before do
+      expect(client).to receive(:get)
+                          .with('/v4.1/customer/treatment/123', expected_params, Booker::V4::Models::TreatmentVerifiedBookableOnline).and_return(response)
+    end
+
+    it 'returns appointment' do
+      expect(client.treatmemt(id: 123)).to be response
+    end
+  end
+
   describe '#treatments' do
     let(:expected_params) {described_class::DEFAULT_PAGINATION_PARAMS.merge({
       access_token: 'access_token',
