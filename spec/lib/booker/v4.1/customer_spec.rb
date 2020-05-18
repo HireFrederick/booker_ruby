@@ -22,6 +22,7 @@ describe Booker::V41::Customer do
         create_appointment: "#{v41_appointments_prefix}/create",
         create_class_appointment: "#{v41_prefix}/class_appointment/create",
         employees: "#{v41_prefix}/employees",
+        treatment: "#{v41_prefix}/treatment",
         treatments: "#{v41_prefix}/treatments",
         treatments_verified_bookable_online: "#{v41_prefix}/treatments/online",
         location: "#{v41_prefix}/location",
@@ -269,6 +270,19 @@ describe Booker::V41::Customer do
       it 'merges passed in params into base params' do
         expect(client.locations(params: {another_option: 'foo'})).to eq []
       end
+    end
+  end
+
+  describe '#treatment' do
+    let(:expected_params) { {access_token: 'access_token', includeEmployeeTreatment: false } }
+
+    before do
+      expect(client).to receive(:get)
+                          .with('/v4.1/customer/treatment/123', expected_params, Booker::V4::Models::TreatmentVerifiedBookableOnline).and_return(response)
+    end
+
+    it 'returns treatment' do
+      expect(client.treatment(id: 123)).to be response
     end
   end
 
