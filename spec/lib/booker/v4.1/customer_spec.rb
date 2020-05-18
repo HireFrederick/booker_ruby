@@ -281,7 +281,7 @@ describe Booker::V41::Customer do
                           .with('/v4.1/customer/treatment/123', expected_params, Booker::V4::Models::TreatmentVerifiedBookableOnline).and_return(response)
     end
 
-    it 'returns appointment' do
+    it 'returns treatment' do
       expect(client.treatment(id: 123)).to be response
     end
   end
