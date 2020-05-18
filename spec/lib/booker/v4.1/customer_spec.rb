@@ -274,7 +274,7 @@ describe Booker::V41::Customer do
   end
 
   describe '#treatment' do
-    let(:expected_params) { {access_token: 'access_token' } }
+    let(:expected_params) { {access_token: 'access_token', includeEmployeeTreatment: false } }
 
     before do
       expect(client).to receive(:get)

@@ -55,8 +55,10 @@ module Booker
         )
       end
 
-      def treatment(id:)
-        get "#{API_METHODS[:treatment]}/#{id}", build_params, Booker::V4::Models::TreatmentVerifiedBookableOnline
+      def treatment(id:, includeEmployeeTreatment: false)
+        get "#{API_METHODS[:treatment]}/#{id}", build_params({
+                                                               includeEmployeeTreatment: includeEmployeeTreatment
+                                                             }), Booker::V4::Models::TreatmentVerifiedBookableOnline
       end
 
       def treatments(location_id:, fetch_all: true, params: {})
