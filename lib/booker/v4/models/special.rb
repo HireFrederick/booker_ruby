@@ -29,6 +29,7 @@ module Booker
                       'UsedRedemptions',
                       'AvailableRedemptions',
                       'HasFreeItems',
+                      'PriceRangeScope',
                       'ApplicationItemIDs',
                       'IsExclusiveWithAll',
                       'IsExclusiveWithAny',
