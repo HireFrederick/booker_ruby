@@ -5,7 +5,7 @@ module Booker
         attr_accessor 'From',
                       'To',
                       'DiscountType',
-                      'DiscountAmount',
+                      'DiscountAmount'
       end
     end
   end
