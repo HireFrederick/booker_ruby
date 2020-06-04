@@ -21,6 +21,7 @@ module Booker
                       'HasTreatment',
                       'WeekDays',
                       'UsePriceRanges',
+                      'PriceRanges',
                       'DiscountType',
                       'AdjustmentType',
                       'DiscountAmount',

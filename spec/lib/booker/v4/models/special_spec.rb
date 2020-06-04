@@ -24,6 +24,7 @@ describe Booker::V4::Models::Special do
       'HasTreatment',
       'WeekDays',
       'UsePriceRanges',
+      'PriceRanges',
       'DiscountType',
       'AdjustmentType',
       'DiscountAmount',
