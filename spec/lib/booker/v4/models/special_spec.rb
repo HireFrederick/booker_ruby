@@ -16,8 +16,6 @@ describe Booker::V4::Models::Special do
       'ApplicableEndDate',
       'BookingStartDate',
       'BookingEndDate',
-      'BookingEarlyBirdUnit',
-      'BookingLastMinuteUnit',
       'MaxRedemptions',
       'TimeOfDayStart',
       'TimeOfDayEnd',

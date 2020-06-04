@@ -13,8 +13,6 @@ module Booker
                       'ApplicableEndDate',
                       'BookingStartDate',
                       'BookingEndDate',
-                      'BookingEarlyBirdUnit',
-                      'BookingLastMinuteUnit',
                       'MaxRedemptions',
                       'TimeOfDayStart',
                       'TimeOfDayEnd',
