@@ -32,6 +32,7 @@ describe Booker::V4::Models::Special do
       'UsedRedemptions',
       'AvailableRedemptions',
       'HasFreeItems',
+      'PriceRangeScope',
       'ApplicationItemIDs',
       'IsExclusiveWithAll',
       'IsExclusiveWithAny',
