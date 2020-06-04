@@ -92,6 +92,9 @@ require 'booker/v4/models/treatment'
 require 'booker/v4/models/treatment_time_slot'
 require 'booker/v4/models/treatment_verified_bookable_online'
 require 'booker/v4/models/user'
+require 'booker/v4/models/special'
+require 'booker/v4/models/price_range'
+require 'booker/v4/models/price_range_scope'
 
 # V5 Models
 require 'booker/v5/models/model'

@@ -16,7 +16,8 @@ module Booker
         treatments_verified_bookable_online: "#{V41_PREFIX}/treatments/online".freeze,
         location: "#{V41_PREFIX}/location".freeze,
         locations: "#{V41_PREFIX}/locations".freeze,
-        class_availability: "#{V41_PREFIX}/availability/class".freeze
+        class_availability: "#{V41_PREFIX}/availability/class".freeze,
+        specials: "#{V41_PREFIX}/specials".freeze
       }.freeze
 
       def appointment(id:)
@@ -77,6 +78,16 @@ module Booker
           path: API_METHODS[:treatments_verified_bookable_online],
           params: build_params({LocationID: location_id}, params, true),
           model: Booker::V4::Models::TreatmentVerifiedBookableOnline,
+          fetch_all: fetch_all
+        )
+      end
+
+      def specials(location_id:, fetch_all: true, params: {})
+        paginated_request(
+          method: :post,
+          path: API_METHODS[:specials],
+          params: build_params({ LocationID: location_id }, params, true),
+          model: Booker::V4::Models::Special,
           fetch_all: fetch_all
         )
       end
