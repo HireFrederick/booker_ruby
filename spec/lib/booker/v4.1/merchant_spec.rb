@@ -204,6 +204,18 @@ describe Booker::V41::Merchant do
     end
   end
 
+  describe '#employee' do
+    let(:path) { "#{v41_prefix}/employee/#{employee_id}" }
+    let(:employee_id) { 123 }
+    let(:employee) { instance_double(Booker::V4::Models::Employee) }
+
+    it 'calls get and returns the modeled response' do
+      expect(client).to receive(:get)
+                          .with(path, base_params, Booker::V4::Models::Employee).and_return(employee)
+      expect(client.employee(id: employee_id)).to be employee
+    end
+  end
+
   describe '#employees' do
     let(:path) { "#{v41_prefix}/employees" }
     let(:additional_params) { {LocationID: booker_location_id} }

@@ -62,6 +62,10 @@ module Booker
         )
       end
 
+      def employee(id:, params: {}, model: Booker::V4::Models::Employee)
+        get("#{V41_PREFIX}/employee/#{id}", build_params({}, params), model)
+      end
+
       def employees(location_id:, fetch_all: true, params: {})
         paginated_request(
           method: :post,
