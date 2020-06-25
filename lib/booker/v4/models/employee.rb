@@ -5,7 +5,8 @@ module Booker
         attr_accessor 'ID',
                       'FirstName',
                       'LastName',
-                      'Gender'
+                      'Gender',
+                      'MobilePhone'
       end
     end
   end
