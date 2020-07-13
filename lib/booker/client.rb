@@ -96,7 +96,11 @@ module Booker
 
       puts "fetching #{path} with #{params.except(:access_token)}. #{fetched.length} results so far."
 
-      results = self.send(method, path, params, model)
+      begin
+        results = self.send(method, path, params, model)
+      rescue Net::ReadTimeout
+        results = nil
+      end
 
       unless results.is_a?(Array)
         error_msg = "Result from paginated request to #{path} with params: #{params} is not a collection"
