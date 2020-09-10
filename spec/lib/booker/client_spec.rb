@@ -430,13 +430,14 @@ describe Booker::Client do
       let(:pagination_params) { base_paginated_params }
       let(:result) { client.paginated_request(pagination_params) }
       let(:message) { "Result from paginated request to #{path} with params: #{params} is not a collection" }
+      let(:results_fetched_prior_to_error) { [] }
       let(:error) do
-        Booker::MidPaginationError.new(message: message, error_occurred_during_params: params, results_fetched_prior_to_error: [])
+        Booker::MidPaginationError.new(message: message, error_occurred_during_params: params, results_fetched_prior_to_error: results_fetched_prior_to_error)
       end
 
       context 'first page returns a non-array' do
         before do
-          expect(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return('foo')
+          allow(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return('foo')
         end
 
         it 'raises error; returns hash of message, params, and results successfully fetched prior to error' do
@@ -445,24 +446,62 @@ describe Booker::Client do
           expect(error.results_fetched_prior_to_error).to eq([])
         end
       end
+
       context 'when fetched param is non-empty' do
         let(:order_data) { 'A+ results' }
-        let(:already_fetched) { [order_data, order_data, order_data] }
+        let(:results_fetched_prior_to_error) { [order_data, order_data, order_data] }
         let(:error_page) { 'not an array' }
         let(:page_number) { 5 }
-        let(:pagination_params) { base_paginated_params.merge({fetched: already_fetched}) }
+        let(:pagination_params) { base_paginated_params.merge({fetched: results_fetched_prior_to_error}) }
         let(:message) { "Result from paginated request to #{path} with params: #{params} is not a collection" }
 
         before do
-          expect(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return(error_page)
-          expect(Booker::MidPaginationError).to receive(:new).with(message: message,
+          allow(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return(error_page)
+          allow(Booker::MidPaginationError).to receive(:new).with(message: message,
                                                                    error_occurred_during_params:  params,
-                                                                   results_fetched_prior_to_error: already_fetched
-            ).and_call_original
+                                                                   results_fetched_prior_to_error: results_fetched_prior_to_error
+          ).and_call_original
         end
 
         it 'raises error; returns results prior to error' do
           expect{result}.to raise_error(Booker::MidPaginationError)
+          expect(error.results_fetched_prior_to_error).to eq(results_fetched_prior_to_error)
+        end
+      end
+
+      context 'first page returns a read timeout error' do
+        let(:timeout_error) { Net::ReadTimeout }
+
+        before do
+          allow(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return(timeout_error)
+        end
+
+        it 'raises booker error; returns hash of message, params, and results successfully fetched prior to error' do
+          expect{result}.to raise_error(Booker::MidPaginationError)
+          expect(error.error_occurred_during_params).to eq params
+          expect(error.results_fetched_prior_to_error).to eq([])
+        end
+      end
+
+      context 'when read timeout happens mid pagination' do
+        let(:order_data) { 'A+ results' }
+        let(:results_fetched_prior_to_error) { [order_data, order_data, order_data] }
+        let(:timeout_error) { Net::ReadTimeout }
+        let(:page_number) { 5 }
+        let(:pagination_params) { base_paginated_params.merge({fetched: results_fetched_prior_to_error}) }
+        let(:message) { "Result from paginated request to #{path} with params: #{params} is not a collection" }
+
+        before do
+          allow(client).to receive(:send).with('method', path, params, Booker::V4::Models::Model).and_return(timeout_error)
+          allow(Booker::MidPaginationError).to receive(:new).with(message: message,
+                                                                   error_occurred_during_params:  params,
+                                                                   results_fetched_prior_to_error: results_fetched_prior_to_error
+          ).and_call_original
+        end
+
+        it 'raises booker error; returns results prior to error' do
+          expect{result}.to raise_error(Booker::MidPaginationError)
+          expect(error.results_fetched_prior_to_error).to eq(results_fetched_prior_to_error)
         end
       end
     end
