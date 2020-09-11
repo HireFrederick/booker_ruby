@@ -6,7 +6,8 @@ module Booker
                       'FirstName',
                       'LastName',
                       'Gender',
-                      'MobilePhone'
+                      'MobilePhone',
+                      'Address'
       end
     end
   end
