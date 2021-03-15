@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    booker_ruby (3.4.0)
+    booker_ruby (3.4.1)
       activesupport (>= 3.0.0)
       httparty (>= 0.14)
-      jwt (~> 1.5)
+      jwt (>= 1.5, <= 2.5)
       oj
 
 GEM
@@ -24,13 +24,13 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.1.1)
       concurrent-ruby (~> 1.0)
-    jwt (1.5.6)
+    jwt (2.2.2)
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2020.0512)
+    mime-types-data (3.2021.0225)
     minitest (5.11.3)
     multi_xml (0.6.0)
-    oj (3.10.7)
+    oj (3.11.2)
     rspec (3.8.0)
       rspec-core (~> 3.8.0)
       rspec-expectations (~> 3.8.0)
