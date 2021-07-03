@@ -41,23 +41,25 @@ module Booker
         )
       end
 
-      def find_orders(booker_location_id:, fetch_all: true, params: {})
+      def find_orders(booker_location_id:, fetch_all: true, params: {}, skip_corrupt_pages_without_errors: false)
         paginated_request(
             method: :post,
             path: '/orders',
             params: build_params({LocationID: booker_location_id}, params, true),
             model: Booker::V4::Models::Order,
-            fetch_all: fetch_all
+            fetch_all: fetch_all,
+            skip_corrupt_pages_without_errors: skip_corrupt_pages_without_errors
         )
       end
 
-      def find_orders_partial(booker_location_id:, fetch_all: true, params: {})
+      def find_orders_partial(booker_location_id:, fetch_all: true, params: {}, skip_corrupt_pages_without_errors: false)
         paginated_request(
             method: :post,
             path: '/orders/partial',
             params: build_params({LocationID: booker_location_id}, params, true),
             model: Booker::V4::Models::Order,
-            fetch_all: fetch_all
+            fetch_all: fetch_all,
+            skip_corrupt_pages_without_errors: skip_corrupt_pages_without_errors
         )
       end
 
@@ -71,7 +73,7 @@ module Booker
         )
       end
 
-      def find_customers(booker_location_id:, fetch_all: true, params: {})
+      def find_customers(booker_location_id:, fetch_all: true, params: {}, skip_corrupt_pages_without_errors: false)
         additional_params = {
             'FilterByExactLocationID' => true,
             'LocationID' => booker_location_id,
@@ -83,7 +85,8 @@ module Booker
             path: '/customers',
             params: build_params(additional_params, params, true),
             model: Booker::V4::Models::Customer,
-            fetch_all: fetch_all
+            fetch_all: fetch_all,
+            skip_corrupt_pages_without_errors: skip_corrupt_pages_without_errors
         )
       end
 

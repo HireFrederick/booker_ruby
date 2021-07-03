@@ -86,7 +86,7 @@ module Booker
       build_resources(booker_resources, booker_model)
     end
 
-    def paginated_request(method:, path:, params:, model: nil, fetched: [], fetch_all: true)
+    def paginated_request(method:, path:, params:, model: nil, fetched: [], fetch_all: true, skip_corrupt_pages_without_errors: false)
       page_size = params[:PageSize]
       page_number = params[:PageNumber]
 
@@ -104,8 +104,13 @@ module Booker
 
       unless results.is_a?(Array)
         error_msg = "Result from paginated request to #{path} with params: #{params} is not a collection"
-        raise Booker::MidPaginationError.new(message: error_msg, error_occurred_during_params: params,
-                                             results_fetched_prior_to_error: fetched)
+
+        if skip_corrupt_pages_without_errors
+          results = process_non_corrupt_pages(method: method, path: path, params: params, model: model)
+        else
+          raise Booker::MidPaginationError.new(message: error_msg, error_occurred_during_params: params,
+                                           results_fetched_prior_to_error: fetched)
+        end
       end
 
       fetched.concat(results)
@@ -123,6 +128,28 @@ module Booker
       else
         results
       end
+    end
+
+    def process_non_corrupt_pages(method:, path:, params:, model: nil)
+      initial_page_size = params[:PageSize]
+      initial_page_number = params[:PageNumber]
+      return [] unless initial_page_size > 1 # if pagesize is one, there are no other non-corrupt pages
+
+      non_corrupt_data = []
+      pages_processed = (initial_page_number * initial_page_size)
+      new_params = params.deep_dup
+      new_params[:PageSize] = 1 # set to 1 to search for singular pages with noncorrupt data. Optimize noncorrupt data.
+
+      initial_page_size.times do
+        new_params[:PageNumber] = (pages_processed += 1)
+
+        single_page_results = paginated_request(method: method, path: path, params: new_params, model: model, fetch_all: false)
+        single_page_results = [] unless results.is_a?(Array) # if page is corrupted: skip
+
+        non_corrupt_data.concat(single_page_results)
+      end
+
+      non_corrupt_data
     end
 
     def get_booker_resources(http_method, path, params=nil, body=nil, booker_model=nil)
