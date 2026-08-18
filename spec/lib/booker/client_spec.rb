@@ -205,12 +205,30 @@ describe Booker::Client do
       end
     end
 
-    context 'one of the scopes is not supported' do
-      let(:access_token_scope) { 'internal not-a-scope' }
+    context 'the caller passes a scope that is not supported' do
+      let(:client_initialize_parms) { super().merge(access_token_scope: 'internal not-a-scope') }
 
       it 'raises' do
         expect { client }.to raise_error ArgumentError,
                                          "access_token_scope must be one of: #{described_class::VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
+      end
+    end
+
+    context 'the token carries a scope the allowlist does not cover' do
+      # What Booker actually mints for the personal access token grant, which is wider than the
+      # 'internal userinfo' it documents as requestable
+      let(:access_token_scope) { %w(customer internal merchant public userinfo) }
+
+      it 'accepts the token instead of raising on scopes Booker chose' do
+        expect(client.access_token_scope).to eq 'customer internal merchant public userinfo'
+      end
+
+      context 'and the caller configured a scope of its own' do
+        let(:client_initialize_parms) { super().merge(access_token_scope: 'internal userinfo') }
+
+        it 'keeps the configured scope so the next token request asks only for that' do
+          expect(client.access_token_scope).to eq 'internal userinfo'
+        end
       end
     end
   end

@@ -43,28 +43,24 @@ module Booker
       if self.auth_with_personal_access_token.nil?
         self.auth_with_personal_access_token = ENV['BOOKER_API_AUTH_WITH_PERSONAL_ACCESS_TOKEN'] == 'true'
       end
+      configured_access_token_scope = self.access_token_scope
       if self.temp_access_token.present?
         begin
           self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
+          # Used only as a fallback below. Booker mints tokens carrying more scopes than it documents as
+          # requestable, so this claim must not become what the next token request asks for.
           self.access_token_scope = token_scope(self.temp_access_token)
         rescue JWT::ExpiredSignature => ex
           raise ex unless can_mint_access_token?
         end
       end
-      if self.access_token_scope.blank?
-        self.access_token_scope = VALID_ACCESS_TOKEN_SCOPES.first
-      else
-        # A token may carry several scopes -- the personal access token grant asks for 'internal userinfo'
-        # -- and token_scope above feeds the JWT claim straight back in here, which arrives as either a
-        # space separated string or a list depending on how many scopes there are. Normalise to the string
-        # form the token request body expects.
-        scopes = Array(self.access_token_scope).flat_map { |scope| scope.to_s.split(/\s+/) }.reject(&:empty?)
-        unsupported = scopes - VALID_ACCESS_TOKEN_SCOPES
-        if unsupported.any?
-          raise ArgumentError, "access_token_scope must be one of: #{VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
-        end
-        self.access_token_scope = scopes.join(' ')
-      end
+      # The allowlist exists to catch a scope this gem's callers got wrong, so it is applied only to what
+      # they passed. A scope read back off a Booker minted token is Booker's to decide, and rejecting it
+      # would turn them widening a token into an ArgumentError deep inside a caller's job.
+      validate_access_token_scope!(configured_access_token_scope) if configured_access_token_scope.present?
+      self.access_token_scope =
+        normalized_access_token_scope(configured_access_token_scope.presence || self.access_token_scope)
+          .presence || VALID_ACCESS_TOKEN_SCOPES.first
     end
 
     def get_base_url
@@ -300,6 +296,19 @@ module Booker
     private
       def can_mint_access_token?
         self.auth_with_client_credentials || self.auth_with_personal_access_token || self.refresh_token.present?
+      end
+
+      # A scope arrives either as a space separated string or, when a JWT claim carries several, as a list.
+      # The token request body wants the string form.
+      def normalized_access_token_scope(scope)
+        Array(scope).flat_map { |entry| entry.to_s.split(/\s+/) }.reject(&:empty?).join(' ')
+      end
+
+      def validate_access_token_scope!(scope)
+        unsupported = normalized_access_token_scope(scope).split(' ') - VALID_ACCESS_TOKEN_SCOPES
+        return if unsupported.empty?
+
+        raise ArgumentError, "access_token_scope must be one of: #{VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
       end
 
       # The personal access token grant wins when both machine grants are enabled: it is the only one the
