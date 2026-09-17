@@ -1,7 +1,0 @@
-main:
-  build:
-    image: booker_ruby
-    dockerfile: Dockerfile
-  cached: true
-  volumes:
-    - ./:/booker_ruby
