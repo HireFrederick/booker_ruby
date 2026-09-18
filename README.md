@@ -22,6 +22,7 @@ BOOKER_API_SUBSCRIPTION_KEY = YOUR API SUBSCRIPTION KEY
 BOOKER_API_BASE_URL = https://api.booker.com # Defaults to https://api-staging.booker.com
 BOOKER_DEFAULT_PAGE_SIZE = 10 # Default
 BOOKER_API_DEBUG = false # Set to true to print request details to the log
+BOOKER_PERSONAL_ACCESS_TOKEN = YOUR PERSONAL ACCESS TOKEN # Only for the personal_access_token grant
 ```
 
 To ease development, **the gem points to Booker's API Sandbox at apicurrent-app.booker.ninja by default**.
@@ -41,14 +42,25 @@ A client subclass is available for each API:
 
 ### Authentication
 
-The client supports both refresh token and client credentials authorization flows. If a `refresh_token` is provided
-or `auth_with_client_credentials` is set to `true`, the client will attempt to request a new access token as needed.
+The client supports the refresh token, client credentials and personal access token authorization flows. If a
+`refresh_token` is provided or either `auth_with_client_credentials` or `auth_with_personal_access_token` is set to
+`true`, the client will attempt to request a new access token as needed.
 
 If your API subscription permits, an access token and refresh token for a specific merchant may be retrieved via OAuth. The [Booker OmniAuth Gem](https://github.com/hirefrederick/omniauth-booker) provides an OmniAuth strategy to make this easy for Rails/Rack-based apps.
+
+Personal access token flow:
+* Newer Booker APIs -- the V5 CRM APIs among them -- reject client credentials tokens and require a token minted from
+a personal access token. Set `auth_with_personal_access_token` to `true` and supply `personal_access_token` (or set
+`BOOKER_PERSONAL_ACCESS_TOKEN`); `client_id` and `client_secret` are still sent alongside it.
+* When both machine grants are enabled the personal access token grant wins.
+* Like client credentials, the resulting token is account level: if `location_id` is set the client exchanges it for a
+location scoped token before use.
 
 Access token scopes:
 * An access token scope may be provided to instruct the client what type of token should be requested.
 You most likely want to use the `public` (default) or `merchant` scope depending on your use case.
+* Several scopes may be requested at once as a space separated string, e.g. `internal userinfo`, which is what the
+personal access token flow expects.
 
 ```
 # Use Booker::V41::Booking to look up a location's details

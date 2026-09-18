@@ -47,9 +47,10 @@ describe Booker::Client do
       expect(described_class::CREATE_TOKEN_CONTENT_TYPE).to eq 'application/x-www-form-urlencoded'
       expect(described_class::CLIENT_CREDENTIALS_GRANT_TYPE).to eq 'client_credentials'
       expect(described_class::REFRESH_TOKEN_GRANT_TYPE).to eq 'refresh_token'
+      expect(described_class::PERSONAL_ACCESS_TOKEN_GRANT_TYPE).to eq 'personal_access_token'
       expect(described_class::CREATE_TOKEN_PATH).to eq '/v5/auth/connect/token'
       expect(described_class::UPDATE_TOKEN_CONTEXT_PATH).to eq '/v5/auth/context/update'
-      expect(described_class::VALID_ACCESS_TOKEN_SCOPES).to eq %w(public merchant parter-payment internal)
+      expect(described_class::VALID_ACCESS_TOKEN_SCOPES).to eq %w(public merchant parter-payment internal userinfo)
       expect(described_class::DEFAULT_BASE_URL).to eq 'https://api-staging.booker.com'
       expect(described_class::DEFAULT_AUTH_BASE_URL).to eq 'https://api-staging.booker.com'
       expect(described_class::API_GATEWAY_ERRORS).to eq({
@@ -71,6 +72,8 @@ describe Booker::Client do
                                                   .with(temp_access_token).and_return access_token_scope
     end
     let(:env_base_url) { 'api base url from env' }
+    let(:env_personal_access_token) { nil }
+    let(:env_auth_with_personal_access_token) { nil }
 
     before do
       allow(ENV).to receive(:[]).with('BOOKER_CLIENT_ID').and_return 'id from env'
@@ -78,6 +81,9 @@ describe Booker::Client do
       allow(ENV).to receive(:[]).with('BOOKER_API_BASE_URL').and_return env_base_url
       allow(ENV).to receive(:[]).with('BOOKER_API_SUBSCRIPTION_KEY').and_return 'sub key from env'
       allow(ENV).to receive(:[]).with('BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS').and_return 'true'
+      allow(ENV).to receive(:[]).with('BOOKER_PERSONAL_ACCESS_TOKEN').and_return env_personal_access_token
+      allow(ENV).to receive(:[]).with('BOOKER_API_AUTH_WITH_PERSONAL_ACCESS_TOKEN')
+                                .and_return env_auth_with_personal_access_token
     end
 
     it 'builds a client with the valid options given' do
@@ -114,6 +120,17 @@ describe Booker::Client do
         end
       end
 
+      context 'auth_with_personal_access_token, no refresh_token' do
+        let(:client_initialize_parms) { super().merge(auth_with_personal_access_token: true) }
+        let(:refresh_token) { nil }
+
+        it 'rescues and does not set options from the token' do
+          expect(client.temp_access_token).to eq temp_access_token
+          expect(client.temp_access_token_expires_at).to be_nil
+          expect(client.access_token_scope).to eq 'public'
+        end
+      end
+
       context 'neither refresh_token nor auth_with_client_credentials' do
         let(:refresh_token) { nil }
 
@@ -141,6 +158,7 @@ describe Booker::Client do
 
     context 'defaults from ENV' do
       let(:client) { Booker::Client.new }
+      let(:env_personal_access_token) { 'pat from env' }
 
       it 'loads from ENV' do
         expect(client.client_id).to eq 'id from env'
@@ -148,6 +166,69 @@ describe Booker::Client do
         expect(client.auth_with_client_credentials).to be true
         expect(client.auth_base_url).to eq 'api base url from env'
         expect(client.api_subscription_key).to eq 'sub key from env'
+        expect(client.personal_access_token).to eq 'pat from env'
+      end
+
+      it 'does not enable the personal access token grant unless ENV asks for it' do
+        expect(client.auth_with_personal_access_token).to be false
+      end
+
+      context 'BOOKER_API_AUTH_WITH_PERSONAL_ACCESS_TOKEN is true' do
+        let(:env_auth_with_personal_access_token) { 'true' }
+
+        it { expect(client.auth_with_personal_access_token).to be true }
+      end
+    end
+
+    context 'auth_with_personal_access_token given in the options' do
+      let(:client_initialize_parms) { super().merge(auth_with_personal_access_token: true) }
+      let(:env_auth_with_personal_access_token) { 'false' }
+
+      it 'wins over ENV' do
+        expect(client.auth_with_personal_access_token).to be true
+      end
+    end
+
+    context 'the token carries several space separated scopes' do
+      let(:access_token_scope) { 'internal userinfo' }
+
+      it 'accepts them rather than raising' do
+        expect(client.access_token_scope).to eq 'internal userinfo'
+      end
+    end
+
+    context 'the token carries its scopes as a list' do
+      let(:access_token_scope) { %w(internal userinfo) }
+
+      it 'normalises them to the space separated form the token request body expects' do
+        expect(client.access_token_scope).to eq 'internal userinfo'
+      end
+    end
+
+    context 'the caller passes a scope that is not supported' do
+      let(:client_initialize_parms) { super().merge(access_token_scope: 'internal not-a-scope') }
+
+      it 'raises' do
+        expect { client }.to raise_error ArgumentError,
+                                         "access_token_scope must be one of: #{described_class::VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
+      end
+    end
+
+    context 'the token carries a scope the allowlist does not cover' do
+      # What Booker actually mints for the personal access token grant, which is wider than the
+      # 'internal userinfo' it documents as requestable
+      let(:access_token_scope) { %w(customer internal merchant public userinfo) }
+
+      it 'accepts the token instead of raising on scopes Booker chose' do
+        expect(client.access_token_scope).to eq 'customer internal merchant public userinfo'
+      end
+
+      context 'and the caller configured a scope of its own' do
+        let(:client_initialize_parms) { super().merge(access_token_scope: 'internal userinfo') }
+
+        it 'keeps the configured scope so the next token request asks only for that' do
+          expect(client.access_token_scope).to eq 'internal userinfo'
+        end
       end
     end
   end
@@ -897,6 +978,40 @@ describe Booker::Client do
       end
     end
 
+    context 'auth_with_personal_access_token is true' do
+      let(:auth_with_client_credentials) { false }
+      let(:client_initialize_parms) { super().merge(auth_with_personal_access_token: true) }
+
+      before do
+        expect(client).to receive(:access_token_response).and_return(response)
+        expect(client).to receive(:update_token_store).with(no_args)
+      end
+
+      it 'sets token info and returns a temp access token' do
+        expect(client).to_not receive(:get_location_access_token)
+        expect(result).to eq access_token
+        expect(result).to eq client.temp_access_token
+        expect(client.temp_access_token_expires_at).to be temp_access_token_expires_at
+      end
+
+      context 'client has location_id' do
+        let(:location_token) { 'location token' }
+        let(:location_id) { 31415926 }
+        let!(:jwt_stubs) do
+          allow_any_instance_of(described_class).to receive(:token_expires_at)
+                                                      .with(location_token).and_return temp_access_token_expires_at
+        end
+
+        before { expect(client).to receive(:get_location_access_token).and_return location_token }
+
+        it 'exchanges the account level token for a location scoped one' do
+          expect(result).to eq location_token
+          expect(result).to eq client.temp_access_token
+          expect(client.temp_access_token_expires_at).to be temp_access_token_expires_at
+        end
+      end
+    end
+
     context 'neither refresh token nor auth_with_client_credentials' do
       let(:auth_with_client_credentials) { false }
 
@@ -908,7 +1023,8 @@ describe Booker::Client do
       it 'raises' do
         expect{result}.to raise_error(
           ArgumentError,
-          'Cannot get new access token without auth_with_client_credentials or a refresh_token'
+          'Cannot get new access token without auth_with_client_credentials, ' \
+          'auth_with_personal_access_token or a refresh_token'
         )
       end
     end
@@ -1018,6 +1134,46 @@ describe Booker::Client do
 
       context 'success' do
         it 'returns response' do
+          expect(client.access_token_response).to eq resp
+        end
+      end
+    end
+
+    context 'with a personal access token' do
+      let(:auth_with_client_credentials) { false }
+      let(:personal_access_token) { 'personal_access_token' }
+      let(:access_token_scope) { 'internal userinfo' }
+      let(:client_initialize_parms) do
+        super().merge(auth_with_personal_access_token: true, personal_access_token: personal_access_token)
+      end
+      let(:options) do
+        {
+          headers: {
+            'Content-Type' => described_class::CREATE_TOKEN_CONTENT_TYPE,
+            'Ocp-Apim-Subscription-Key' => api_subscription_key
+          },
+          body: {
+            grant_type: described_class::PERSONAL_ACCESS_TOKEN_GRANT_TYPE,
+            client_id: client_id,
+            client_secret: client_secret,
+            scope: access_token_scope,
+            personal_access_token: personal_access_token
+          }.to_query,
+          timeout: 30
+        }
+      end
+      let(:resp) { instance_double(HTTParty::Response, success?: true, code: 201, parsed_response: {}) }
+
+      before { expect(HTTParty).to receive(:post).with(url, options).and_return resp }
+
+      it 'sends the personal access token grant and omits the refresh token' do
+        expect(client.access_token_response).to eq resp
+      end
+
+      context 'auth_with_client_credentials is also set' do
+        let(:auth_with_client_credentials) { true }
+
+        it 'still uses the personal access token grant' do
           expect(client.access_token_response).to eq resp
         end
       end
