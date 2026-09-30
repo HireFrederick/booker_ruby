@@ -4,14 +4,16 @@ module Booker
 
     attr_accessor :base_url, :auth_base_url, :client_id, :client_secret, :temp_access_token,
                   :temp_access_token_expires_at, :token_store, :token_store_callback_method, :api_subscription_key,
-                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials, :request_timeout
+                  :access_token_scope, :refresh_token, :location_id, :auth_with_client_credentials, :request_timeout,
+                  :personal_access_token, :auth_with_personal_access_token
 
     CREATE_TOKEN_CONTENT_TYPE = 'application/x-www-form-urlencoded'.freeze
     CLIENT_CREDENTIALS_GRANT_TYPE = 'client_credentials'.freeze
     REFRESH_TOKEN_GRANT_TYPE = 'refresh_token'.freeze
+    PERSONAL_ACCESS_TOKEN_GRANT_TYPE = 'personal_access_token'.freeze
     CREATE_TOKEN_PATH = '/v5/auth/connect/token'.freeze
     UPDATE_TOKEN_CONTEXT_PATH = '/v5/auth/context/update'.freeze
-    VALID_ACCESS_TOKEN_SCOPES = %w(public merchant parter-payment internal).map(&:freeze).freeze
+    VALID_ACCESS_TOKEN_SCOPES = %w(public merchant parter-payment internal userinfo).map(&:freeze).freeze
     API_GATEWAY_ERRORS = {
       503 => Booker::ServiceUnavailable,
       504 => Booker::ServiceUnavailable,
@@ -34,22 +36,31 @@ module Booker
       self.client_id ||= ENV['BOOKER_CLIENT_ID']
       self.client_secret ||= ENV['BOOKER_CLIENT_SECRET']
       self.api_subscription_key ||= ENV['BOOKER_API_SUBSCRIPTION_KEY']
+      self.personal_access_token ||= ENV['BOOKER_PERSONAL_ACCESS_TOKEN']
       if self.auth_with_client_credentials.nil?
         self.auth_with_client_credentials = ENV['BOOKER_API_AUTH_WITH_CLIENT_CREDENTIALS'] == 'true'
       end
+      if self.auth_with_personal_access_token.nil?
+        self.auth_with_personal_access_token = ENV['BOOKER_API_AUTH_WITH_PERSONAL_ACCESS_TOKEN'] == 'true'
+      end
+      configured_access_token_scope = self.access_token_scope
       if self.temp_access_token.present?
         begin
           self.temp_access_token_expires_at = token_expires_at(self.temp_access_token)
+          # Used only as a fallback below. Booker mints tokens carrying more scopes than it documents as
+          # requestable, so this claim must not become what the next token request asks for.
           self.access_token_scope = token_scope(self.temp_access_token)
         rescue JWT::ExpiredSignature => ex
-          raise ex unless self.auth_with_client_credentials || self.refresh_token.present?
+          raise ex unless can_mint_access_token?
         end
       end
-      if self.access_token_scope.blank?
-        self.access_token_scope = VALID_ACCESS_TOKEN_SCOPES.first
-      elsif !self.access_token_scope.in?(VALID_ACCESS_TOKEN_SCOPES)
-        raise ArgumentError, "access_token_scope must be one of: #{VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
-      end
+      # The allowlist exists to catch a scope this gem's callers got wrong, so it is applied only to what
+      # they passed. A scope read back off a Booker minted token is Booker's to decide, and rejecting it
+      # would turn them widening a token into an ArgumentError deep inside a caller's job.
+      validate_access_token_scope!(configured_access_token_scope) if configured_access_token_scope.present?
+      self.access_token_scope =
+        normalized_access_token_scope(configured_access_token_scope.presence || self.access_token_scope)
+          .presence || VALID_ACCESS_TOKEN_SCOPES.first
     end
 
     def get_base_url
@@ -202,15 +213,18 @@ module Booker
     end
 
     def get_access_token
-      unless self.auth_with_client_credentials || self.refresh_token
-        raise ArgumentError, 'Cannot get new access token without auth_with_client_credentials or a refresh_token'
+      unless can_mint_access_token?
+        raise ArgumentError, 'Cannot get new access token without auth_with_client_credentials, ' \
+                             'auth_with_personal_access_token or a refresh_token'
       end
 
       resp = access_token_response
       token = resp.parsed_response['access_token']
       raise Booker::InvalidApiCredentials.new(response: resp) if token.blank?
 
-      if self.auth_with_client_credentials && self.location_id
+      # Both machine grants mint an account level token that has to be exchanged for a location scoped
+      # one; only the refresh token grant returns a token that is already in location context.
+      if self.location_id && (self.auth_with_client_credentials || self.auth_with_personal_access_token)
         self.temp_access_token = get_location_access_token(token, self.location_id)
       else
         self.temp_access_token = token
@@ -225,12 +239,15 @@ module Booker
 
     def access_token_response
       body = {
-        grant_type: self.auth_with_client_credentials ? CLIENT_CREDENTIALS_GRANT_TYPE : REFRESH_TOKEN_GRANT_TYPE,
+        grant_type: access_token_grant_type,
         client_id: self.client_id,
         client_secret: self.client_secret,
         scope: self.access_token_scope
       }
       body[:refresh_token] = self.refresh_token if body[:grant_type] == REFRESH_TOKEN_GRANT_TYPE
+      if body[:grant_type] == PERSONAL_ACCESS_TOKEN_GRANT_TYPE
+        body[:personal_access_token] = self.personal_access_token
+      end
       options = {
         headers: {
           'Content-Type' => CREATE_TOKEN_CONTENT_TYPE,
@@ -277,6 +294,35 @@ module Booker
     end
 
     private
+      def can_mint_access_token?
+        self.auth_with_client_credentials || self.auth_with_personal_access_token || self.refresh_token.present?
+      end
+
+      # A scope arrives either as a space separated string or, when a JWT claim carries several, as a list.
+      # The token request body wants the string form.
+      def normalized_access_token_scope(scope)
+        Array(scope).flat_map { |entry| entry.to_s.split(/\s+/) }.reject(&:empty?).join(' ')
+      end
+
+      def validate_access_token_scope!(scope)
+        unsupported = normalized_access_token_scope(scope).split(' ') - VALID_ACCESS_TOKEN_SCOPES
+        return if unsupported.empty?
+
+        raise ArgumentError, "access_token_scope must be one of: #{VALID_ACCESS_TOKEN_SCOPES.join(', ')}"
+      end
+
+      # The personal access token grant wins when both machine grants are enabled: it is the only one the
+      # V5 CRM APIs accept, and a client configured for it has no reason to fall back to client credentials.
+      def access_token_grant_type
+        if self.auth_with_personal_access_token
+          PERSONAL_ACCESS_TOKEN_GRANT_TYPE
+        elsif self.auth_with_client_credentials
+          CLIENT_CREDENTIALS_GRANT_TYPE
+        else
+          REFRESH_TOKEN_GRANT_TYPE
+        end
+      end
+
       def request_options(query=nil, body=nil)
         options = {
           # Headers must use stringified keys due to how they are transformed in some Net::HTTP versions
