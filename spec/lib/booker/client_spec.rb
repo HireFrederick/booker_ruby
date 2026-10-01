@@ -449,7 +449,7 @@ describe Booker::Client do
         end
 
         it 'calls the request method for each page, returning the combined result set' do
-          expect(client.paginated_request(paginated_request_args)).to eq [result_1, result_2, result_3, result_4, result_5]
+          expect(client.paginated_request(**paginated_request_args)).to eq [result_1, result_2, result_3, result_4, result_5]
         end
       end
 
@@ -457,7 +457,7 @@ describe Booker::Client do
         let(:paginated_request_args) { base_paginated_request_args.merge(fetch_all: false) }
 
         it 'returns the first page of results' do
-          expect(client.paginated_request(paginated_request_args)).to eq results
+          expect(client.paginated_request(**paginated_request_args)).to eq results
         end
       end
     end
@@ -509,7 +509,7 @@ describe Booker::Client do
       end
       let(:base_paginated_params) { {method: 'method', path: path, params: params, model: Booker::V4::Models::Model, fetch_all: true} }
       let(:pagination_params) { base_paginated_params }
-      let(:result) { client.paginated_request(pagination_params) }
+      let(:result) { client.paginated_request(**pagination_params) }
       let(:message) { "Result from paginated request to #{path} with params: #{params} is not a collection" }
       let(:results_fetched_prior_to_error) { [] }
       let(:error) do
