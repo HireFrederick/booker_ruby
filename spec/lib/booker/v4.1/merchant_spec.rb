@@ -104,7 +104,7 @@ describe Booker::V41::Merchant do
     before { allow(Time).to receive(:now).with(no_args).and_return(now) }
 
     after do
-      location_day_schedules = client.location_day_schedules(location_day_schedules_options)
+      location_day_schedules = client.location_day_schedules(**location_day_schedules_options)
       expect(location_day_schedules.length).to be 2
       expect(location_day_schedules.map(&:class).uniq).to eq [Booker::V4::Models::LocationDaySchedule]
     end
@@ -181,7 +181,7 @@ describe Booker::V41::Merchant do
     end
     let(:appointments_partial_options) { { location_id: booker_location_id, start_date: start_date, end_date: end_date } }
 
-    after { expect(client.appointments_partial(appointments_partial_options)).to eq response }
+    after { expect(client.appointments_partial(**appointments_partial_options)).to eq response }
 
     it('calls get and returns the modeled response') { appointments_partial_expectations }
 
@@ -233,7 +233,7 @@ describe Booker::V41::Merchant do
     end
     let(:employees_options) { { location_id: booker_location_id } }
 
-    after { expect(client.employees(employees_options)).to eq response }
+    after { expect(client.employees(**employees_options)).to eq response }
 
     it('calls get and returns the modeled response') { employees_expectations }
 
@@ -273,7 +273,7 @@ describe Booker::V41::Merchant do
     end
     let(:treatments_options) { { location_id: booker_location_id } }
 
-    after { expect(client.treatments(treatments_options)).to eq response }
+    after { expect(client.treatments(**treatments_options)).to eq response }
 
     it('calls get and returns the modeled response') { treatments_expectations }
 
