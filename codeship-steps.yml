@@ -1,5 +1,0 @@
-- type: parallel
-  steps:
-  - name: rspec
-    service: main
-    command: bundle exec rspec

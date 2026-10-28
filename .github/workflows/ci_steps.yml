@@ -1,0 +1,38 @@
+name: "CI Pipeline"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: CI Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: booker_ruby:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The image only carries the bundle; the gem source is mounted in at run
+      # time, the same way codeship-services.yml mounted ./ into the container.
+      - name: Run rspec
+        run: docker run --rm -v ${{ github.workspace }}:/booker_ruby booker_ruby:latest bundle exec rspec

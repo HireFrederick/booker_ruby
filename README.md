@@ -1,6 +1,6 @@
 # Booker Ruby Client
 
-[ ![Codeship Status for HireFrederick/booker_ruby](https://app.codeship.com/projects/a564c190-a133-0133-48cc-22cba843574f/status?branch=master)](https://app.codeship.com/projects/128449)
+[![CI Pipeline](https://github.com/HireFrederick/booker_ruby/actions/workflows/ci_steps.yml/badge.svg)](https://github.com/HireFrederick/booker_ruby/actions/workflows/ci_steps.yml)
 
 Client for the Booker API. See https://developers.booker.com for method-level documentation.
 
